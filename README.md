@@ -1,8 +1,35 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Prerequisites: Setting Up Ollama
+
+This chatbot project relies on a local [Ollama](https://ollama.com) instance to run AI models. Follow these steps to set up and run Ollama:
+
+1. **Install Ollama**:
+   - Download and install Ollama for your OS from the [Ollama website](https://ollama.com).
+
+2. **Start Ollama**:
+   - **Windows/macOS**: Ollama automatically starts as a background app. Look for the Ollama icon in your system tray.
+   - **Linux / Manual command**: If it's not running, you can start it via terminal with:
+     ```bash
+     ollama serve
+     ```
+
+3. **Pull the Llama Model**:
+   - The application is configured to detect and prefer `llama3.2:1b` for fast execution. Pull the model before running the project:
+     ```bash
+     # To pull the lightweight Llama 3.2 model (1.3 GB)
+     ollama pull llama3.2:1b
+     ```
+
+4. **Verify Ollama is Active**:
+   - Check the list of downloaded models and ensure the service is running:
+     ```bash
+     ollama list
+     ```
+
 ## Getting Started
 
-First, run the development server:
+First, make sure Ollama is running, then start the development server:
 
 ```bash
 npm run dev
