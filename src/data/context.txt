@@ -1,20 +1,19 @@
 C-DAC stands for Centre for Development of Advanced Computing.
 
-C-DAC Revival Disaster Recovery (DR) Product Family 
+C-DAC Revival Disaster Recovery (DR) Product Family
 Cost effective recovery for critical data
 
-C-DAC Revival Disaster Recovery product family consists of a variety of data replication and backup solutions to provide end to end disaster recovery for enterprise business applications. 
-The product line is designed specifically based on the user's need for data replication depending on the business application architecture. 
-C-DAC Revival DR products can be used to manage planned and unplanned outages, enabling 24x7 data availability for business. 
-It provides long term business continuity, continuous data availability and customer satisfaction ensuring near zero RPO and negligible RTO for the business critical data. 
+C-DAC Revival Disaster Recovery product family consists of a variety of data replication and backup solutions to provide end to end disaster recovery for enterprise business applications.
+The product line is designed specifically based on the user's need for data replication depending on the business application architecture.
+C-DAC Revival DR products can be used to manage planned and unplanned outages, enabling 24x7 data availability for business.
+It provides long term business continuity, continuous data availability and customer satisfaction ensuring near zero RPO and negligible RTO for the business critical data.
 
-
-C-DAC Revival Block Replicator : 
-C-DAC Revival is an end to end DR solution, best suited for database intensive e-Gov and Business applications. C-DAC Revival makes use of synchronous and semi-synchronous replication to achieve optimal business continuity with zero recovery point objective (RPO) and negligible recovery time objective (RTO). It uses iSCSI over TCP/IP to provide block replication at remote sites. It is interoperable with  legacy hardware systems including SAN boxes and works very well with database based applications. 
+C-DAC Revival Block Replicator :
+C-DAC Revival is an end to end DR solution, best suited for database intensive e-Gov and Business applications. C-DAC Revival makes use of synchronous and semi-synchronous replication to achieve optimal business continuity with zero recovery point objective (RPO) and negligible recovery time objective (RTO). It uses iSCSI over TCP/IP to provide block replication at remote sites. It is interoperable with  legacy hardware systems including SAN boxes and works very well with database based applications.
 C-DAC Revival Block Replicator ranges are :
-C-DAC Revival Sync: Real-time synchronous block replication over IP network from C-DAC Revival DC to C-DAC Revival DR located within 50 km to provide zero recovery point objective. 
+C-DAC Revival Sync: Real-time synchronous block replication over IP network from C-DAC Revival DC to C-DAC Revival DR located within 50 km to provide zero recovery point objective.
 
-C-DAC Revival Semi-sync/Async : Real-time semi-synchronous block replication over IP network from C-DAC Revival DC to C-DAC Revival DR over WAN distances and provides negligible recovery point objective bounded by network delay. 
+C-DAC Revival Semi-sync/Async : Real-time semi-synchronous block replication over IP network from C-DAC Revival DC to C-DAC Revival DR over WAN distances and provides negligible recovery point objective bounded by network delay.
 
 C-DAC Revival Optimal DR : Combination of synchronous and semi-synchronous block replication over IP network with three tier architecture to provide zero recovery point objective over WAN.
 
@@ -58,14 +57,14 @@ Product: C-DAC Revival Optimal-DR
 - WAN optimization: Data compression / recompression technique is used
 - Application/database interaction: Using iSCSI device drivers
 
-C-DAC Revival Flat-File Backup solution:   
+C-DAC Revival Flat-File Backup solution:
 Revival flat-file backup is a platform independent file level replication/backup solution. The lightweight Revival agent captures the recent file-based transactions from the source and transfers it periodically to the destination. The data integrity check is maintained between source and destination to ensure the data consistency.
- 
+
 C-DAC Revival as a Service over cloud: Cost effective service oriented DR software solution
-Revival as a service over cloud is designed with Revival DR agent to support multiple tenants in a service oriented approach. It is a SaaS solution interoperable with various cloud architectures like VMware, Microsoft, Openstack, Eucalyptus XCP-NG etc. Similar to Revival, Revival as a Service is also based on TCP/iSCSI protocol for block data replication at remote site and is best suitable for database based applications. 
+Revival as a service over cloud is designed with Revival DR agent to support multiple tenants in a service oriented approach. It is a SaaS solution interoperable with various cloud architectures like VMware, Microsoft, Openstack, Eucalyptus XCP-NG etc. Similar to Revival, Revival as a Service is also based on TCP/iSCSI protocol for block data replication at remote site and is best suitable for database based applications.
 
 C-DAC DRM : Software web solution for DR management and monitoring
-C-DAC DRM is a centralized DR management and monitoring  web application designed to manage DR related activities. Various DR drill activities such as Normal copy, reverse normal copy, switchover, switchback, failover, failback are fully automated through DRM. One can monitor the entire DR setup of various DR deployments through DRM, which reduces manual intervention  often prone to human errors and helps in effortless monitoring of entire DR setup. DRM provides report generation of the activities carried out and alert/notification for critical events via sms and email. 
+C-DAC DRM is a centralized DR management and monitoring  web application designed to manage DR related activities. Various DR drill activities such as Normal copy, reverse normal copy, switchover, switchback, failover, failback are fully automated through DRM. One can monitor the entire DR setup of various DR deployments through DRM, which reduces manual intervention  often prone to human errors and helps in effortless monitoring of entire DR setup. DRM provides report generation of the activities carried out and alert/notification for critical events via sms and email.
 
 Revival Active-Active Replicator
 C-DAC Revival active-active replicator is best suited for database-based applications having active load at both primary and secondary sites. The near distance active database data is bidirectionally replicated between primary and secondary sites using asynchronous mechanisms. Revival active-active replicator is also suitable for cross platform database applications. The consistency check at both ends ensures data integrity.
@@ -75,7 +74,7 @@ Indian patent has been granted to the cdac revival patent (Patent no: 321137)
 DG R & D award for CDAC REVIVAL in 2016
 C-DAC DR solution(revival and Revival as a Service ) uses a patented technology(Patent no: 321137) , award winning and indigenously developed replication  technology.
 Supports Disaster Recovery for widely used databases such as Oracle, PostgreSQL, MSSQL, MySQL, MongoDB Replica set(with and without shards).
-C-DAC Faltfile Replication provides the replication and backup functionality for the unstructured data.   
+C-DAC Faltfile Replication provides the replication and backup functionality for the unstructured data.
 Supports both forward (from Primary site to secondary site) and reverse(from secondary site to primary site) replication.
 Ensures zero RPO and negligible RTO with its three site architecture of replication solution and online replication and recovery of database data.
 Provides ordered data delivery of write operations.
@@ -85,7 +84,7 @@ C-DAC DRM facilitates various features like Role based access control (RBAC), Mu
 
 C-DAC DR solution case studies:
 - NSDG Deployment: deployed for National Service Delivery Gateway (NSDG) in production environment since June 2012 with primary site at Laxmi Nagar Data Centre (LNDC) Delhi, staging site at NDC Shastri park-Delhi and secondary site at NIC Data Centre Hyderabad. C-DAC Revival has successfully handled three times the disaster scenarios in various situations like water logging at LNDC, network failure at LNDC and load balancer failure of NSDG infrastructure. During all the three failure situations, the data recovery could be accomplished with Zero RPO(data loss) and negligible RTO (30 min -2 hrs). The C-DAC DR solution  is ISMS (ISO 27001) compliant as part of the NSDG project. C-DAC     DR solution deployment is also in process for other e-gov applications like e-Pramman and MSDG.
-- LRIT Deployment: deployed for Long Range Identification and Tracking(LRIT) , providing the automated backup, replication and recovery  support between DC(NDC Navbhavan Mumbai ) and DR (IMAC Gurgaon ). LRIT solution is NCIIPC and ISMS compliant and C-DAC DR solution plays a crucial role achieving the same. The regular  DR drill assured the readiness of infrastructure at the DC and DR site. 
+- LRIT Deployment: deployed for Long Range Identification and Tracking(LRIT) , providing the automated backup, replication and recovery  support between DC(NDC Navbhavan Mumbai ) and DR (IMAC Gurgaon ). LRIT solution is NCIIPC and ISMS compliant and C-DAC DR solution plays a crucial role achieving the same. The regular  DR drill assured the readiness of infrastructure at the DC and DR site.
 - Revival as a Service Demonstration: demonstrated between SDC Maharashtra and  NDC Pune for Maharashtra state applications such as CMRF and Marathi-Bhasha. The Proof of Concept (PoC) and live testing of the solution for 3 months has been successfully carried out on NDC Pune cloud. During PoC and live testing, various drill scenarios like switchover, switchback, failover and failback have been demonstrated with zero RPO (data loss). The recommendation letter from Maharashtra state CMRF department has been received for suitability of DR solution for their applications namely CMRF , Marathi Bhasha, RTI Online, MSRTC, GRAS, Land Records etc.
 
 Cost Saving:
@@ -96,7 +95,7 @@ Cost Saving:
 Accolades and Achievements:
 - C-DAC Revival has been awarded as runner up in NASSCOM Innovation Awards in category of New Technology Advancement in 2012.
 - C-DAC Revival is ISMS (ISO 27001) complied under NSDG project.
-- Successfully deployed C-DAC Revival in NSDG(e-Sangam) on 9th June 2012 and handled many disaster situations by ensuring zero RPO. 
+- Successfully deployed C-DAC Revival in NSDG(e-Sangam) on 9th June 2012 and handled many disaster situations by ensuring zero RPO.
 - Successfully conducted live POCs for many e-Gov applications such as e-Pramaan, CMRF, Marathi Bhasha.
 - Recommended for RTI online, MSRTC, GRAS and Land Records.
 - Indian patent has been granted to the cdac revival (Patent no : 321137).
@@ -117,3 +116,4 @@ Abbreviation /Acronyms:
 - RTO: Recovery time objective
 - MSRTC: Maharashtra State Road Transport Corporation
 - GRAS: Government Receipt Accounting System
+

@@ -1,0 +1,945 @@
+Table of Contents
+Table of Contents	1
+1	What is DRP	5
+2	Scenarios when DRP needs to be invoked	5
+3	Purpose of DRP	5
+4	Audience	6
+5	Key Assumptions/Pre-requisites	6
+6	Stakeholders	6
+7	DR Location	7
+8	Selection Criteria for DR Site	7
+9	DR Authority List	8
+10	DR Vendor Authority List	8
+11	Authorizing Invocation of DR Plan	8
+12	Setup at DR Site	8
+12.1	DR Architecture	9
+12.2	Network Setup	9
+12.2.1	DNS Configuration Requirements	9
+13	Requirements at Disaster Recovery Site	10
+13.1	Server and Database Requirements	10
+13.2	Documentation Requirements	10
+13.3	People Requirements	11
+13.4	Facility and Miscellaneous Requirements	11
+14	Disaster Recovery Call Tree	11
+15	Activating the Disaster Recovery Plan	12
+15.1	Disaster identification and declaration	12
+15.2	DRP activation	13
+15.3	Communicating the disaster	13
+15.4	Assessment of current and prevention of further damage	14
+15.5	Standby facility activation	14
+15.6	Establish IT operations	14
+15.7	Repair and rebuilding of the primary facility	14
+16	DRP Activation	14
+16.1	Assessment of Current and Prevention of Further Damage	14
+17	DR Solution	15
+17.1	DR Activation Instructions	15
+17.2	DC to DR Network Switch-Over / Fail-over Procedure	15
+17.3	DR Activation Activities	16
+18	Daily Activities for Critical Functions at Disaster Recovery Site	16
+18.1	Daily Activities during Normal Operation Mode	17
+18.2	System / Network Admin Daily Activities during Normal Operation Mode	19
+18.3	Daily Activities during Failover Operation Mode	20
+18.4	System / Network Admin Activities during Switch-over / Fail-over Operation Mode	21
+19	Plan Maintenance Schedule	21
+19.1	Basic Maintenance	21
+19.2	Change-Driven Maintenance	21
+19.3	Changes Requiring Plan Maintenance	22
+19.4	Change Management Team	22
+20	DC Primary Site Reactivation	22
+20.1	Authorizing Reactivation of Primary Site	23
+20.2	What is Fail-back?	23
+20.3	DR to DC Network Fail-back Procedure	23
+20.4	System / Network Admin Activities during Fail-back Operation Mode at DR	23
+20.5	Primary Site Reactivation Activities for Application	23
+20.5.1	At DR site	24
+20.5.2	At DC site	24
+21	Plan Testing & Maintenance	24
+21.1	Maintenance	24
+21.2	Testing	25
+22	Template of DC and DR Drill Report	25
+23	Beginning of Day(BoD) and End of Day (EoD) activities for Site engineer	26
+23.1	Tasks performed by Site Engineer	26
+23.2	Beginning of Day (BOD) Tasks for Other Activities	26
+23.3	End of Day (EOD) Tasks for Other Activities	27
+23.4	Incident Resolution for Other Activities	27
+
+Document Version History
+The Document is classified under Confidential Category.
+Author System Integrator (Custodian) C-DAC
+Date
+Version
+Remark
+
+0.1
+First Draft Released
+Aadhar Data Vault(ADV)
+Date
+Version
+Remark
+
+References
+
+What is DRP
+A disaster recovery plan (DRP) is a documented, structured approach with instructions for responding to unplanned incidents. This step-by-step plan consists of the precautions to minimize the effects of a disaster so that the ADV system  can continue to operate or quickly resume its mission-critical functions. Disaster recovery and business continuity planning are integral parts of the overall risk management for an organization in this case ADV system. Both processes are equally important because they provide detailed strategies on how the business will continue after severe interruptions and disasters.
+
+Scenarios when DRP needs to be invoked
+Following are the various circumstances where DRP needs to be activated
+Catastrophic events resulting in a major disruption of services and complete processing capability cannot be achieved for a substantial period of time. In these cases, recovery will require the use of alternate processing sites as well as off-site offices for employees over an extended period of time. Some examples of such events are war, earthquakes, acts of terrorism, etc.
+Disastrous events where overall business infrastructure may experience a severe disaster resulting in the total shut down and complete processing capability of all business processes may be down. Further, key personnel may not be able to access the premises and also lead to non-availability of key resources. Some examples of such events are floods, rain, fire, riots, power shutdown, etc.
+List of Few Disaster Scenarios where DR Site Activation is required
+Threat
+Scenario
+Earthquake
+Inaccessibility to the premises
+Epidemic
+Inaccessibility to the premises
+Fire - Internal (Catastrophic)
+Inaccessibility to the premises
+Flooding
+Inaccessibility to the premises
+Hurricane / Typhoon
+Inaccessibility to the premises
+Sabotage / Receiving end of a Terrorist activity
+Inaccessibility to the premises
+Power Flux
+Non-availability of critical IT Systems
+Thunder / Electrical Storm
+Non-availability of critical IT Systems
+Failure of IT and/or Telecom Infrastructure
+Non-availability of critical IT Systems
+IT Security Incident
+Non-availability of critical IT Systems
+
+Purpose of DRP
+<<<Information of ADV>>>
+DRP provides procedures for service continuity and data integrity with security conformance of the LRIT system deployed in NDC Delhi and NDC Pune over cloud infrastructure as per IT Act 2000; ISMS ISO 27001: 2013 as mandated by DGS in the tender document.
+
+Audience
+The intended audience for the implementation and updating of this DRP document is listed below. Brief responsibilities along with names of the personnel present in this team are listed below
+Project Management Team
+Hardware / OS / Firmware Team
+Database Support Team
+Development Team
+Monitoring Team
+MIS/SLA Incident Reporting/management Team
+Network Monitoring/ Migration Team
+BCP/DR Management Team
+Support Team for BCP/DR Team for Migration of services from DC to DR
+Support Team for BCP/DR Team for restoration of services from DR to DC
+Testing Team
+
+Change Management Team
+ISMS compliance
+
+Key Assumptions/Prerequisites
+Following are the assumptions in case of DR Plan:
+Connectivity of the DR site is live, with two links each of — Megabits per second, and sufficient to support the additional load created by the restored processes.
+The Network Operating Center (NOC) of NDC Delhi and Pune  has its own disaster recovery mechanisms.
+DR site contains sufficient IT infrastructure: e.g. required Servers, all types of required connectivity, network equipment and Desktop(s) along with a fully functional internal LAN.
+In the case of major mishaps like flooding, earthquake, etc. both Primary and DR sites are not affected at the same time.
+In the case of network data corruption or virus attack, which shall be a remote possibility, both DR and DC may be shut down together.
+No single point of failure for network infrastructure at DC and DR sites. There shall be multiple network connectivity between DC and DR site, as well as from clients to the DR site.
+Failback time may depend on the time taken by DGS to regularize the resources especially in case of major disasters affecting the DC infrastructure.
+For failover and failback, additional resources in terms of manpower and financial budget shall be facilitated.
+
+Stakeholders
+The overall list of stakeholders of the ADV system is as follows:
+
+DR Location
+Disaster Recovery Centre (DRC):
+Data Centre Site (DC Site ): Delhi
+Disaster Recovery Centre (DR Site): Pune
+
+Selection Criteria for DR Site
+Following criteria are considered for selection of DR site:
+Geographic area: Distance from Primary site to DR site is approximately 1385 km and hence there is a very low probability of DR site being affected by the same disaster as the Primary site.
+Proximity:
+By Road - Proximity between Primary site and DR site is _30_Hours (approximately).
+By Train - Proximity between Primary site and DR site is _30_ Hours (approximately).
+Security: Confidentiality, Integrity, and Availability of information are preserved at DR Site.
+Environment: Structural and environmental conditions of the storage facility (i.e. Temperature, Humidity, Fire prevention, and Power management controls) has been considered for selection of DR sites.
+Cost: Cost of transportation, operational fees, and disaster response/recovery services have been taken into account.
+When finalizing the DR site due consideration has been given to:
+Selection/consideration Criteria
+Facility required
+Communications
+Connectivity to systems (Externally & Internally)
+Backup communications
+Power
+Emergency Power / Power Backup like UPS, etc. to be ensured
+Computer
+Access to intranet/internet, Software applications, Mails etc. as required
+Security
+Access to the DR Site is restricted to authorized personnel
+Food and Cash
+
+Availability of adequate food and emergency cash is ensured
+Occupancy of the premises
+Within a predefined time limit, space could be occupied by at any time
+
+NDC Data Centre is best suited for the ADV DR site. Some of the important facilities available here are listed below:
+Access Control:  RFID card + Biometric access.
+Cooling: It has a properly planned cooling from Top (Ceiling vents) and bottom (Floor Vents) of the racks.
+Electric Power Sources: 1 available + another coming up.
+Transformer: 1 Available + another coming up.
+Power Backup: approx 200 KVA UPS for the data center with approximate 6-8 hours backup
+Generator: Available and immediately switches in case of power failure.
+Raised Flooring: Available
+Fire protection system, Water leak detection system, Smoke detection system, etc available.
+
+DR Authority List
+Following table lists the people in their priority order, who are authorized to declare the disaster. These people are the highest in the DR management team and have the final authority to declare disaster without seeking any approval. These people shall have their mobile numbers with different service providers. Preferably they shall be located in different geographical regions.
+Sr. No.
+Name
+Designation
+Contact details
+Role
+1
+
+2
+Shreya Bokare
+Joint Director
+Centre for Development of Advanced
+Raintree Marg, Near Bharati Vidyapeeth, Opp. Kharghar Railway Station, Sector 7, CBD Belapur, Navi Mumbai, Maharashtra 400614
+email: shreya@cdac.in
+Disaster Recovery and Business Continuity Team Leader
+
+DR Cloud infrastructure Authority List
+The section will be updated when a successful bidder is selected for the supply of goods for the ADV project.
+
+Authorizing Invocation of DR Plan
+Invocation of DR Plan shall be triggered by the Authorized person only. List of an Authorized person can be found in the DR Authority List.
+Following steps shall be carried out for triggering invocation of DR Plan:
+·	The Authorized person is informed of Disaster.
+·	Authorized person calls the command recipient (Project director in this case) and gives a command (DR invocation command in this case).
+·	Command recipient (Project Director) callbacks the same authorized person on the contact number mentioned in DR Authority List and confirms command (invocation of DR).
+·	On confirmation, the command recipient (Project Director) acts as per command (DR invocation).
+This method of the authorization will now onwards be referred to as the “Call Back” Method in this Plan.
+When any of the aforesaid events take place within or near the Project premises at Primary site, the Project director shall review the impact of the calamity on the project operations and prolong of the event. If the impact on the operations is considered very adverse, then the Project Director shall declare the event as a disaster and DR site shall be activated.
+
+Setup at DR Site
+Disaster Recovery Site will consist of the same machine as Primary Site with same global IPs, similar internal LAN structure and LIVE Application Objects and Setting Files. Latest DB Backup will be restored at DR DB Server before any changes are made to Primary DB.
+
+13.1DR Architecture
+Please refer to section 2 Design Philosophy of Specifications & Design of Data Centre [DC] & Disaster Recovery Centre [DRC] For ADV System.
+
+Network Setup
+Please refer to section 4. Network Architecture of Specifications & Design of Data Centre [DC] & Disaster Recovery Centre [DRC] For ADV System.
+
+DNS Configuration Requirements
+Pratik
+
+Requirements at Disaster Recovery Sit
+
+Server and Database Requirements
+Sr. No.
+Server Name
+First IP
+Second IP
+Public IP
+Application/Component
+
+DCDB-1
+10.246.144.34
+
+Primary Database Node-1
+
+DCDB-2
+10.246.144.35
+
+Primary Database Node-2
+
+DC-Revival
+10.246.144.36
+
+Revival DC
+
+DR-Revival
+10.153.68.196
+
+Revival DR
+
+DRDB-1
+10.153.68.194
+
+Secondary Database Node-1
+
+DRDB-2
+10.153.68.195
+
+Secondary Database Node-2
+
+Port Requirement
+From
+To
+
+Sr.No
+IP
+Location
+IP
+Location
+Port
+Purpose
+1
+10.246.144.36
+DC
+10.153.68.196
+DR
+3260
+ISCSI
+2
+10.153.68.196
+DR
+10.246.144.36
+DC
+3261
+ISCSI
+3
+10.246.144.34
+DCDB
+10.246.144.36
+DC
+3260
+ISCSI
+4
+10.246.144.34
+DCDB
+10.246.144.36
+DC
+3261
+ISCSI
+5
+10.153.68.194
+DRDB
+10.153.68.196
+DR
+3260
+ISCSI
+6
+10.246.144.36
+DRDB
+10.153.68.196
+DR
+3261
+ISCSI
+7
+10.246.144.36
+DC
+10.153.68.196
+DR
+7022
+SSH
+8
+10.153.68.196
+DR
+10.246.144.36
+DC
+7022
+SSH
+
+Documentation Requirements
+Team responsible in this document is as per the team structure defined in section 3.2 Team support Structure of Infrastructure Maintenance plan submitted to MeitY.
+Sr. No.
+Document
+Purpose
+Availability
+Team Responsible
+
+1
+Disaster Recovery Plan
+A step-wise description of activities to be done at DR site
+Yes
+BCP/DR Management Team
+2
+Business Continuity Plan
+Guidance on how to ensure the continuity of business in case of any disaster/disruption
+Yes
+3
+Application setup
+Details on the Application setup
+Yes
+Development Team
+4
+System Setup
+Details on the Changes to be done on the Server-side (if any)
+Yes
+Hardware / OS / Firmware Team
+5
+
+Network Setup
+For diverting traffic to DR site
+Yes
+Network Monitoring/ Migration Team
+6
+Dependant Applications
+Setup changes on other applications
+Yes
+Development Team
+7
+Application Support Documents
+
+For any problem in the system
+Yes
+
+People Requirements
+The people's requirements might be subject to change based on space and criticality of the tasks allocated to the personnel.
+Sr.No.
+Group
+No. of People at Primary Site
+No. of People required at DR site
+Dedicated staff at DR site
+1.
+1st Level O & M at DC – Delhi and DR –Pune)
+1
+1
+1
+
+TOTAL
+1
+1
+1
+
+Facility and Miscellaneous Requirements
+Sr. No.
+Utility
+Availability
+1
+Telephone Connection with EPBAX
+Yes
+2
+Fax machine
+Yes
+3
+UPS
+Yes
+4
+Printer
+Yes
+
+Disaster Recovery Call Tree
+For any incident and issues related to Hardware/Network, following escalation matrix should be followed:
+The time period shall be calculated based on Business Impact Analysis (BIA).
+Sr. No.
+Escalation Level
+Escalation To
+Contact Details
+1.
+Level 1
+1st Level O & M people present at DC site
+To be provided later
+2.
+Level 2
+Based on the type of incident ,the issue can be escalated to any of the Teams listed below :
+Hardware/Firmware/OS Team
+O&M Team
+Network Monitoring Team
+MIS/SLA Monitoring Team
+To be provided later
+3
+Level 3
+If any Hardware/ Network Communications incident does not get resolved by Level 2  Team, Vendor/OEM/ISP may be contacted to resolve the issue as per the SLA/MoU/NDA signed.
+To be provided later
+
+Activating the Disaster Recovery Plan
+If a disaster occurs, the first priority is to ensure that all employees are safe and accounted for. After this, steps must be taken to mitigate any further damage to the facility and to reduce the impact of the disaster on the organization. Regardless of the category that the disaster falls into, dealing with a disaster can be broken down into the following steps:
+
+Disaster identification and declaration
+The incident of ADV service discontinuation is identified by the 1st level O&M team.  Whether it is a temporary service failure situation like temporary network breakdown, hardware failure, software failure is identified with the DR authority team. According to the incident, criticality decisions will be conveyed to the 2nd and 3rd level authorities. Disaster will be declared based on the probability rating (PR) and Impact rating (IR) of the incident. The details of PR and IR are mentioned in the Business Continuity plan.
+
+DRP activation
+Once the incident is identified as “Disaster Situation”, the DRP activation process will be initiated by level 2 and 3. During the Disaster activation process, the nature of the disaster, its impact is analyzed and accordingly DR action plan is initiated with concerned authority’s approval.
+
+Communicating the disaster
+The disaster situation is declared and communicated to all the related stakeholders. The estimated service reestablishment period (RTO) is communicated to all the stakeholders. During the failover activation process, if the incident cannot be handled by data backup from the tape library, migration of the service from DC to DR site is carried out, for that the network migration process is primarily important. The DR site network migration is initiated.
+
+Assessment of current and prevention of further damage
+Along with migration from DC to DR site, the assessment of damage such as asset failure and its replacement if required is analyzed. Any future damage to the asset is also analyzed and reported.
+
+Standby facility activation
+In case of disaster situation, where migration from primary to DR site is required, the DR site is activated ensuring consistent data state of the ADV system. The services are activated from the DR site. At DR site, generated data is stored locally at DR site and outage data backup is initiated on spare drives at DR site.
+
+Establish IT operations
+During the establishment of services from the DR site, along with client services, all the peripheral services like reporting, logging, etc (which were in the cold state normally) are also started from the DR site.
+
+Repair and rebuilding of the primary facility
+Once the disaster situation is recovered at the primary site, migration of services from secondary to primary is initiated, called failback operation; it's a planned operation. During failback operation, outage data backup is transferred from secondary to the primary site. Again network and site migration from secondary to the primary site is conducted.
+
+DRP Activation
+Once the Disaster Recovery Lead has formally declared that a disaster has occurred s/he will initiate the activation of the DRP by triggering the Disaster Recovery Call Tree. The following information will be provided in the calls that the Disaster Recovery Lead makes and should be passed during subsequent calls:
+That a disaster has occurred
+The nature of the disaster (if known)
+The initial estimation of the magnitude of the disaster (if known)
+The initial estimation of the impact of the disaster (if known)
+The initial estimation of the expected duration of the disaster (if known)
+Actions that have been taken to this point
+Any other pertinent information
+If the Disaster Recovery Lead is unavailable to trigger the Disaster Recovery Call Tree, that responsibility shall fall to the Disaster Management Team Lead.
+
+Assessment of Current and Prevention of Further Damage
+The estimation of damage caused due to disaster situations calculated based on the criticality of the incident and its impact ratio (mentioned in BCP). The system damage assessment is based on impact at the primary site on only hardware, only software or the entire DR site. Asset damage scenarios, their reactive and proactive/preventive actions are listed as follows:
+
+Sr. No.
+Asset damage
+Details of asset
+Reactive Action
+Proactive action
+(for prevention from further damage)
+1
+Hardware
+
+2
+Software
+
+DR Solution
+Refer “Specifications of National Data Centre [NDC] Disaster Recovery Centre [DRC] Regional Data Centre [RDC] for Long Range Identification and Tracking System [LRIT]” document section 2 for DC-DRC Design philosophy.
+Refer “Installation and Commissioning of Data Centre (DC) and Disaster Recovery Centre (DRC) Detailed plan for LRIT system” document section 4.5 for initialization of DR solution for LRIT system.
+
+DR Activation Instructions
+Activate disaster team (list of all members of the disaster team is given in the table named DR team); this work will be done by any member present in the (DR authority list).
+Activate backup procedures (the automated backup mechanism is available, but in case of disaster if it is possible to take a backup from dc).
+Coordinate with management, authorities (DR team members will coordinate with the DR authority members).
+Notify customers, clients, financial leaders (a person from DR authority list will talk to the financial leader), media and vendors (see vendor list).
+Reroute network facilities (see DR site network migration procedure).
+Reestablish connectivity and facility (see DR site network migration procedure).
+Track work for audit purposes.
+Maintain system and facilities security.
+Assess liability.
+Follow the daily activities that were being followed at the DC site.
+
+DC to DR Network Switch-Over / Fail-over Procedure
+To switch-over / fail-over ADV services from DC to DR in case of planned outage/drill/ disaster, the following activities will be  performed by System Admin Team for the restoration of ADV services from DR :
+Send an e-mail to GOV.IN domain registry services of NIC requesting a required change in zone file as specified in section 12.2.1.2 of this document, so as to reflect IP addresses of name servers configured at DR site.  The intimation of the same should also be sent to the concerned team members of the ADV like ADV project manager.
+
+The email is to be sent to following ID’s:
+Domain Registration Support <support@registry.gov.in>
+Another useful link:
+https://servicedesk.nic.in/
+https://registry.gov.in/
+
+DR Activation Activities
+Once it is decided that the incident is a disaster and there is a need to migration of ADV services from DC to DR site, the following activities are performed as DR activation activities
+
+Sanity test activities:
+Ensure that the hardware infrastructure is up and running (servers(blade and rack), network and storage system)
+Check login to the hardware infrastructure
+Check internal network connection to each server by telnet/ssh
+Ensure the all the VM’s  are up and running
+Check the  number of VM running in the Xenorchestra/Xcpng center
+Ensure the database  is up and running
+Check DC and DR  Nodes command
+Check DC-1 is in Active Mode(If available)
+Check DC-2 , DR-1 and DR-2 is in Standby Mode(If available)
+Check the status of Steaming between primary and secondary nodes on both DC-Side and DR-Side.
+Ensure the application servers are having updated configuration files
+Check the latest version of the configuration file at the respective location
+Check the count of archive files on /var/revival on both sides.
+Ensure the DC-DR agent at DR site is up and running
+Check the replication status and latest archived file at DR database
+Ensure the external link connectivity to the application server at DR site
+Bandwidth measurement can be done by using the tools provided by ISP or
+By white listing one of the servers with public IP and using iperf
+Pratik
+
+Switchover /failover operation:
+Ensure that all archived files which are received from the primary site are replayed at DR site.
+Apply trigger file to the database to bring it to an active state
+The data other than database data from the DR agent is copied to their respective location.
+Check the data in the database tables by connecting to it.
+Check the ADV service application access to the database data by connecting from the application server.
+If the application server's latest activity at the primary site is known, try performing the same activity from the DR site.
+Check the mail server at the DR site is up and running.
+Ensure the network migration status by connecting the application server from the external network.
+Check the archive files generated in  /var/reverse-revival/archive_files path.
+Check the DR-1 to DR-2 streaming is working fine.
+
+Daily Activities for Critical Functions at Disaster Recovery Site
+Updated Vendor contact list should be available at site in case of call log.
+Make sure if the active device is failed then the standby device should be able accept the load and check the working of the standby device via login into the system.
+In case of scheduled power down drill all devices should be strictly under monitoring until main line supply continues.
+Critical components of ADV systems are mentioned in the Business Impact Analysis (BIA) list document.
+There are two main components in BIA.
+
+Sandesh
+Disaster Recovery system
+
+Daily activities:  Begin Of Day (BOD)
+Proper data consolidation in warm standby mode to ensure RTO zero:
+Monitor the sequence and size of the incoming archive file.
+Monitor the replay of sequential archive files.
+Replication of  data  to tape backup to make RPO zero
+Monitor tape backup activities.
+Log record generation of other servers
+Monitor log file generation at DR.
+Check the free disk space at forward-mount-point and reverse-mount-point.
+Check the archive files count at forward-mount-point and reverse-mount-point both sides.
+Check both the nodes DC-1 in Active Mode and DC-2, DR-1 and DR-2  are in Stand-by Mode.
+Check the count at both sides if the count is matched and recovery of data is done properly.
+
+Daily activities:  End Of Day (EOD)
+Power supply check
+Inverter/UPS working correctly
+The alarm is set properly
+
+Daily Activities during Normal Operation Mode
+During normal operation, Daily component-wise activities to be performed at DC and DR sites are listed in the table below
+Sr. No.
+Component
+DC site Daily activities
+DR site daily activities
+4
+Database
+Check both  databases are up and running.
+Verify the postgresql.conf file for connection pooling and other parameters for fine tuning the database.
+Verify the pg_hba.conf where the IP addresses of other sub-systems of ADV are configured.
+Check both  databases are up and running.
+Verify the postgresql.conf file for connection pooling and other parameters for fine tuning the database.
+Verify the pg_hba.conf where the IP addresses of other sub-systems of ADV are configured.
+5
+Reporting
+Check database connectivity.
+Check the connectivity with the portal server.
+Check database connectivity.
+Check the connectivity with the portal server.
+6
+Monitoring
+Check the monitoring server up and running.
+Monitor the status of all application and database servers, with a required white listing of the ports.
+Check the monitoring server up and running.
+Monitor the status of all application and database servers, with a required white listing of the ports.
+7
+BCP-DR solution
+Check the DC-DR primary agent replication processes is  up and running
+Check the DC-DR agent is primarily mounted on the database server (in write operation mode) and other application servers.
+Perform switch_xlog from the database server and check replication is working
+Check the replication status (data lag from DC to DR site
+Check the DC-DR secondary agent replication processes is  up and running
+Check the DC-DR agent at primary mounted on the database server (in reading operation mode) and other application servers
+Refresh the mounted partition (of DC-DR agent) using blockdev/partprobe  on database and application server
+check the recovery status on DR site database server
+The data (other than database data) should be copied to the respective location on the application server.
+
+System / Network Admin Daily Activities during Normal Operation Mode
+During normal operations of DR i.e. DR is standby, the following tasks are performed by system administrators at DR site:
+Network and Server monitoring.
+Update network device OS with support from Vendor’s TAC whenever updates are available.
+Implementing & evaluating the security configuration of network devices and servers.
+Testing the network for weakness.
+Analyzing logs and identifying potential issues.
+Applying operating system updates, patches, and configuration changes on servers.
+Installing and configuring new hardware and software whenever required with support from vendor’s TAC.
+Adding, removing, or updating user account information, resetting passwords, etc.
+Answering technical queries and assisting users.
+Prepare and update comprehensive documentation of the entire IT infrastructure.
+Troubleshooting any reported problems.
+System performance tuning.
+Ensuring that the network infrastructure is up and running.
+Handling storage and backup media.
+Perform Asset Management.
+Vendor/OEM Coordination.
+Escalate highly impacting issues to upper management and/or 3rd party escalation.
+At End of Day, check power supply, air conditioning, indicator and/or alarm lights on all servers and network devices. If there is any problem, take necessary action.
+
+Daily Activities during Failover Operation Mode
+During failover operation, Daily component-wise activities to be performed at DR site are listed in the table below
+Sr. No.
+Component
+DR site Daily activities
+4
+Database
+Check the database servers are up and running.
+Check the connection using ping and telnet commands
+5
+Reporting
+Check database connectivity.
+Check the connectivity with the Application server.
+6
+Monitoring
+Check the monitoring server up and running.
+Monitor the status of all application and database servers, with a required white listing of the ports
+7
+BCP-DR solution
+DC site failure with entire data loss
+Take a base backup of database data
+configure the database to generate archive files at a predefined location
+DC site failure without entire data loss
+configure the database to generate archive files at a predefined location
+Take the weekly backup of
+Database server data working in the active mode.
+Application Data (other than database data which includes respective configuration
+8
+Other component
+Check the access control (password reset as per policy declared). If changes are done, inform the changes over email.
+
+Plan Maintenance Schedule
+
+Basic Maintenance
+The plan will be routinely evaluated once each year. The ADV Project team must review all portions of the plan. In addition, the plan will be tested on a regular basis and any faults will be corrected. Disaster Recovery Plan coordinator has the responsibility of overseeing the individual documents and files and ensuring that they meet standards and are consistent with the rest of the plan.
+
+Change-Driven Maintenance
+It is inevitable in the changing environment of the computer industry that this disaster recovery plan will become outdated and unusable unless someone keeps it up to date. Changes that will likely affect the plan fall into several categories:
+Hardware changes
+Software changes
+System Configuration changes
+Facility changes
+Personnel changes
+Procedural changes
+As changes occur in any of the areas mentioned above, ADV Project team will determine if changes to the plan are necessary. This decision will require that the managers be familiar with the plan in some detail. A document referencing common changes that will require plan maintenance will be made available and updated when required.
+The staff in the affected area will make changes that affect the platform recovery portions of the plan. After the changes have been made, the IT team will be advised that the updated documents are available. They will incorporate the changes into the body of the plan and distribute as required.
+
+Changes Requiring Plan Maintenance
+The following lists some of the types of changes that may require revisions to the Disaster Recovery Plan. Any change that can potentially affect whether the plan can be used to successfully restore the operations of the department's computer and network systems should be reflected in the plan. The change management team could be decided by the BCP management team or it could be itself only. Responsibility for the change management team is also given below.
+Hardware
+Additions, deletions, or upgrades to hardware platforms
+Software
+Additions, deletions, or upgrades to system software
+System Configuration changes
+Changes to applications software affected by the plan
+Facilities
+Changes that affect the availability/usability of the hot Site location
+Personnel
+Changes of personnel identified by name in the plan
+Changes in the organizational structure of the department
+Procedural Changes
+Changes to off-site backup procedures, locations, etc.
+Changes to application backups.
+Changes to vendor lists maintained for acquisition and support purposes, etc.
+
+Change Management Team
+The primary responsibility of this team is to ensure that any changes being done on the production are simultaneously changed at the DR site. The change management process, as well as the team structure, is defined in detail in the “Software Configuration Management Plan”.
+
+DC Primary Site Reactivation
+After the failover operation, the DR site starts working in the active mode, handling the application requests. During this, the DC site has to undergo repair of the failed components. Once the repair of the DC site completes, the primary site reactivation process is initiated. This activity is known as fallback i.e. migration of services from DR site to DC site. Failback is a planned operation and requires service disruption.
+During DR site working in the active mode, the data generated by application services is known as outage data. This outage data needs to be migrated to the DC site for functional reestablishment. The amount of data to be transferred to the DC site depends on disaster impact on the DC site infrastructure.  Few scenarios are listed below.
+Sr. No.
+Scenarios
+Quantity of data transfer required
+1
+Network break, Infrastructure component failure(except SAN and database entire data failure )
+Only outage data (generated after service migration to DR site)
+2
+SAN and database (entire data) failure, natural calamity causing  infrastructure damage
+Entire data
+
+Authorizing Reactivation of Primary Site
+Reactivation of Primary Site i.e. DC shall be carried out after joint decision of DG Shipping and Disaster Recovery Lead.
+
+What is Fail-back?
+Failback is the process of re-synchronizing that data back to the primary data center, halting I/O and application activity once again and cutting back over to the original location.
+
+DR to DC Network Fail-back Procedure
+To failback ADV services form DR to DC after successful planned outage/drill or disaster recovery, the following activities will be performed by System Admin Team for the restoration of ADV services from DC:
+Send an e-mail to GOV.IN domain registry services of NIC requesting a required change in zone file as specified in section 12.2.1.1 of this document, so as to reflect IP addresses of name servers configured at DC site.  The intimation of the same should also be sent to the concerned team members of the ADV like ADV project manager.
+The email is to be sent to following IDs:
+Domain Registration Support <support@registry.gov.in>
+Another useful link:
+https://servicedesk.nic.in/
+https://registry.gov.in/
+After getting response from INOC NIC for the completion of changes in zone file as per request, check whether LRIT service URLs are properly resolving to IP addresses of servers running LRIT applications at DC or not. Accordingly follow-up with INOC NIC Team.
+After successful implementation of changes in zone file by INOC NIC Team, send an e-mail notification to all the LRIT stack holders for refreshing their DNS cache.
+
+System / Network Admin Activities during Fail-back Operation Mode at DR
+During Fail-back, tasks performed by system/network administrators include all tasks which s/he performs during normal operations along with the following tasks:
+Disable DNS service in Link Load Balancer.
+Check ADV application URL is resolving to IP address corresponding to ADV application servers at DC.
+
+Primary Site Reactivation Activities for Application
+Following are the steps the DR and DC administrators have to be performed during the failback process.
+
+At DR site
+Plan DR disruption and declare it in advance.
+If DC site failure with entire data loss at DC site
+Take a base backup of database data
+Configure the database to generate archive files at a predefined location.
+Send the base back up to the DC site.
+Once the DC database is in warm-standby mode, schedule the
+Predicated DR disruption.
+Send the outage files (some archive files and an unarchived WAL file) after a base backup to the DC site.
+DC site failure without data loss at DC site
+Configure the database to generate archive files at a predefined location
+Declared DR disruption.
+Send the outage files (some archive files and an unarchived WAL file)
+
+At DC site
+If DC site failure with entire data loss at DC site
+Extract the base backup.
+Copy the extracted data directory to the database directory.
+Mount DC site SAN disk to the database data directory.
+Remove all files that are not required in recovery/warm-standby mode.
+Add the files (such as recovery.conf) to the database data directory that are required in recovery/warm-standby mode.
+Edit the configuration file (recovery.conf) for setting the database in warm standby mode.
+Set the warm-standby mode archive files path in the configuration file (recovery.conf) of the data directory.
+If archive_files directory is not present in the pg_xlog directory then create it in the pg_xlog directory, which will be used for storing archive files once the database comes in active mode. (pg_xlog directory is present in the database data directory)
+Mount disk of DC-DR agent at DC to pg_xlog directory of the database data directory.
+Set the archive files path in the configuration file (postgresql.conf) of the data directory for storing archive files once the database comes in active mode.
+Copy and Replay all the outage archive files.
+Replay the last unarchived WAL file. This triggers the database to come out of warm-standby mode.
+Now DC is in active mode and ready to handle the incoming requests. To perform the initial or normal setup operations.
+If DC site failure without data loss at DC site
+Copy and Replay all the outage archive files.
+Replay the last unarchived WAL file. This triggers the database to come out of warm-standby mode.
+Now DC is in active mode and ready to handle the incoming requests. To perform the initial or normal setup operations.
+
+Plan Testing & Maintenance
+While efforts will be made initially to construct this DRP in as complete and accurate a manner as possible, it is essentially impossible to address all possible problems at any one time. Additionally, over time the Disaster Recovery needs of the enterprise will change. As a result of these two factors, this plan will need to be tested on a periodic basis to discover errors and omissions and will need to be maintained to address them.
+
+Maintenance
+The DRP will be updated once a year or any time a major system update or upgrade is performed, whichever is more often. The Disaster Recovery Lead will be responsible for updating the entire document, and so is permitted to request information and updates from other employees and departments within the organization in order to complete this task.
+Maintenance of the plan will include (but is not limited to) the following:
+Ensuring that call trees are up to date.
+Ensuring that all team lists are up to date.
+Reviewing the plan to ensure that all of the instructions are still relevant to the organization
+Making any major changes and revisions in the plan to reflect shifts, changes, and goals.
+Ensuring that the plan meets any requirements specified.
+Other project specific maintenance goals
+During the Maintenance periods, any changes to the Disaster Recovery Teams will be accounted for. If any member of a Disaster Recovery Team no longer works with the company, it will be the responsibility of the Disaster Recovery Lead to appoint a new team member and update the DR plan with the new member’s role in the project activity. In this case , names of the personnel involved in the project are listed in the Infrastructure Maintenance plan.
+
+Testing
+C-DAC and DGS are committed to ensuring that this DRP is functional. The DRP should be tested every year in order to ensure that it is still effective.
+
+Template of DC and DR Drill Report
+DC-DR Drill observation summary
+Event:  ADV DC-DR Drill
+Date:
+Observation focus:
+To check the Recovery point objective to maintain the SLA.
+To check total switchover time from Primary Datacenter to Disaster Recovery Site i.e. Recovery time objective (RTO).
+Availability and Testing of Applications hosted at DR Site.
+Drill results for SLA:
+Target Recovery Time
+(hr:min:sec)
+Start time
+End time
+Actual Recovery Time
+(hr:min:sec)
+Remarks
+
+DC-DR Drill process
+Sr. No
+Activity
+Date
+Estimated time
+Predecessors
+Team Responsible
+Resource
+Estimated Duration (min)
+Status
+Actual Start time
+Actual end time
+Actual Duration (min)
+
+Timing Diagrams
+Work Breakdown Structure for Disaster Management
+Task ID
+Tasks
+WBS
+Duration
+Predecessors
+Resources
+1
+Identification of Disaster
+1
+
+2
+Request approval from Project Owner
+2
+
+1
+
+3
+Mobilizing Resources to Disaster Recovery Site
+3
+
+1
+
+4
+O & M Team
+3.1
+
+1
+
+5
+Latest backup for the database on media
+3.2
+
+1
+
+6
+Application Solution Backup
+4
+
+1
+
+7
+Database verification at DR
+5
+1 hr
+5
+
+8
+Confirm if the database is already set to the latest snapshot by verifying against the backup material taken
+5.1
+1 hr
+5
+
+9
+Database check for consistency
+5.2
+1 hr
+8
+
+10
+If fails, recover from the last available backup
+5.3
+1 to 3 hrs
+9
+
+11
+Checking Application Solution Services
+6
+2 hrs
+6
+
+12
+Verification of Data Centre services
+7
+2 hrs
+2
+
+13
+Enabling public access to the ADV Service
+8
+
+7, 11,12
+
+Starting from Step 4 to Step 10, RTO will be sustained in the time period of 2-6 hours.
+
+Beginning of Day(BoD) and End of Day (EoD) activities for Site engineer
+
+Tasks performed by Site Engineer
+Check DC-DR Recovery status before 09:30AM and update the status with BCP DR Team and Site Engineers if the system behaves in a peculiar way.
+Fixing the alerts generated by Monitoring tool as per the directions given by MIS/SLA Incident Reporting/management Team.
+Checking the Hardware status of  ADV infrastructure deployed at DC and DR  site.
+Checking for failed login attempts and NTP status of all  ADV servers and sending the report to the Management Team.
+Checking DC-DR Recovery status after 05:30PM and updating the status BCP DR Team and Site Engineers if the system behaves in a peculiar way.
+Tape library backup scheduled on a fixed day , the same will be verified and the status is included in the Monday’s Hardware report.
+Note:
+The tasks 1, 2, 3, 5 are performed daily, task 6 is performed once in a week and task 4 is performed for every 15 days.
+
+Beginning of Day (BOD) Tasks for Other Activities
+Login to ADV Server, check for remote sessions - active as well as idle. The login should be from a normal user account only.
+Login to the Administrator Console and check for Blade Servers and Enclosure health status.
+Login to individual servers and look for both successful and failed login attempts. Check if the attempt was made at odd times or suspicious user accounts. Record the entries and include them in the daily report.
+Login to other networking devices  and observe on performance and usage of the same.
+Check for media usage on Tape Library along with successful completion of scheduled backup.
+Check the result of the scheduled antivirus scan.
+In case of hardware failure, open a ticket of the incident in Vendor's ticketing software or contact the vendor  and follow incident management and BCP documents.
+
+End of Day (EOD) Tasks for Other Activities
+ Prepare a report with entire day findings and mail it to  Project Management.
+Every Week the site engineer must visit inside DC every week to physically inspect the infrastructure.
+
+Incident Resolution for Other Activities
+In case of any system issue reported by Development Team on servers located at DC and DR site,
+The Hardware/Firmware/OS team would look into the issue. The incident reporter would be reporting the issue through email to MIS/SLA Incident Reporting/management Team
+ using offline process  After the necessary approval from PMU based on the criticality of the issue , the Hardware/Firmware/OS Team would try to resolve the issue. Based on the nature of the incident , the team personnel may escalate the issue to hardware vendor/OEM.
+

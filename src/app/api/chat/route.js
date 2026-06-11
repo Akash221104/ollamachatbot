@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
 import https from 'https';
+import { getOrGenerateEmbeddings, searchSimilarChunks } from './rag';
+
+// Ollama Base Endpoint Config (configurable via env variables for production server deployment)
+const OLLAMA_BASE_URL = (process.env.OLLAMA_URL || 'http://10.210.8.100:51434').replace(/\/+$/, '');
+console.log('--- DEBUG: OLLAMA_BASE_URL is:', OLLAMA_BASE_URL);
+
+// Bypass SSL verification for HTTPS self-signed certificates
+if (OLLAMA_BASE_URL.startsWith('https:')) {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
 
 // Helper to perform HTTP requests to Ollama without Node's undici headers timeout limits
 function makeOllamaRequest(path, body, signal) {
@@ -65,7 +76,7 @@ function makeOllamaGetRequest(path, signal) {
       const url = new URL(`${OLLAMA_BASE_URL}${path}`);
       const isHttps = url.protocol === 'https:';
       const client = isHttps ? https : http;
-      
+
       const options = {
         hostname: url.hostname,
         port: url.port || (isHttps ? 443 : 80),
@@ -74,7 +85,7 @@ function makeOllamaGetRequest(path, signal) {
         headers: {},
         ...(isHttps ? { rejectUnauthorized: false } : {})
       };
-      
+
       const req = client.request(options, (res) => {
         let data = '';
         res.on('data', (chunk) => { data += chunk; });
@@ -86,11 +97,11 @@ function makeOllamaGetRequest(path, signal) {
           }
         });
       });
-      
+
       req.on('error', (err) => {
         reject(err);
       });
-      
+
       if (signal) {
         signal.addEventListener('abort', () => {
           req.destroy();
@@ -99,20 +110,12 @@ function makeOllamaGetRequest(path, signal) {
           reject(err);
         });
       }
-      
+
       req.end();
     } catch (e) {
       reject(e);
     }
   });
-}
-
-// Ollama Base Endpoint Config (configurable via env variables for production server deployment)
-const OLLAMA_BASE_URL = process.env.OLLAMA_URL || 'https://10.212.7.240:4433/ollama';
-
-// Bypass SSL verification for HTTPS self-signed certificates
-if (OLLAMA_BASE_URL.startsWith('https:')) {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 }
 
 // Load context documentation
@@ -144,8 +147,12 @@ async function getOllamaModel() {
     const modelNames = await getAvailableModelNames();
 
     if (modelNames.length === 0) {
-      return 'llama3.2:1b'; // Fallback default
+      return 'qwen3:14b'; // Fallback default
     }
+
+    // Prefer qwen3 first since that is what the user has loaded
+    const preferredQwen = modelNames.find(name => name.startsWith('qwen3') || name.startsWith('qwen'));
+    if (preferredQwen) return preferredQwen;
 
     // Prefer llama3.2:1b or llama3.2 first for speed on CPU/low-memory systems
     const preferred32 = modelNames.find(name => name.startsWith('llama3.2:1b') || name.startsWith('llama3.2'));
@@ -158,9 +165,86 @@ async function getOllamaModel() {
     // Default to the first available model
     return modelNames[0];
   } catch (e) {
-    console.error('Ollama connection error, defaulting to llama3.2:1b:', e.message);
-    return 'llama3.2:1b';
+    console.error('Ollama connection error, defaulting to qwen3:14b:', e.message);
+    return 'qwen3:14b';
   }
+}
+
+// Classify user intent to route messages cleanly
+// Keywords for scope checking
+const GENERAL_KEYWORDS = [
+  'c-dac', 'cdac', 'revival', 'disaster recovery', 'dr', 'drm',
+  'replication', 'replicator', 'replicate', 'replicated',
+  'backup', 'backups', 'failover', 'failback', 'switchover', 'switchback',
+  'sync', 'synchronous', 'semi-synchronous', 'asynchronous', 'async',
+  'optimal', 'flat-file', 'active-active', 'iscsi', 'san',
+  'lndc', 'nsdg', 'lrit', 'cmrf', 'maharashtra', 'pune', 'mumbai', 'hyderabad', 'delhi', 'gurgaon', 'imac', 'shastri park', 'laxmi nagar',
+  'database', 'databases', 'oracle', 'postgresql', 'postgres', 'mssql', 'mysql', 'mongodb',
+  'wan', 'rpo', 'rto', 'mfa', 'rbac', 'ethernet',
+  'deployment', 'deployments', 'case study', 'case studies', 'accolade', 'accolades', 'patent', 'patents', 'award', 'awards',
+  'compliance', 'compliant', 'isms', 'iso', 'distance', 'kilometer', 'kilometers', 'km',
+  'staging', 'appliance', 'appliances', 'drill', 'drills', 'cost', 'saving', 'savings'
+];
+
+const USER_KEYWORDS = [
+  'demo', 'admin', 'designation', 'sdc', 'dr-9981', 'emergency', 'contact', '9876543210',
+  'sa-mum-01', 'appliance', 'drill', 'schedule', 'friday', 'clearance', 'level-3', '500gb',
+  'user', 'profile', 'my info', 'my details', 'about me', 'who am i', 'my setup', 'assigned', 'staging'
+];
+
+// Helper to choose the best embedding model from Ollama
+async function getOllamaEmbeddingModel() {
+  try {
+    const modelNames = await getAvailableModelNames();
+    
+    // Check if bge-m3 is available
+    const preferredBge = modelNames.find(name => name.startsWith('bge-m3'));
+    if (preferredBge) return preferredBge;
+
+    // Check if nomic-embed-text is available
+    const preferredEmbed = modelNames.find(name => name.startsWith('nomic-embed-text'));
+    if (preferredEmbed) return preferredEmbed;
+
+    // Next check if all-minilm is available
+    const preferredMinilm = modelNames.find(name => name.startsWith('all-minilm'));
+    if (preferredMinilm) return preferredMinilm;
+
+    // Fallback to active LLM model
+    return 'bge-m3';
+  } catch (e) {
+    return 'bge-m3';
+  }
+}
+
+async function isQueryInScope(query, isAuthenticated, generalChunks, userChunks, embeddingModel) {
+  const cleanQuery = query.toLowerCase();
+
+  const hasGeneral = GENERAL_KEYWORDS.some(kw => cleanQuery.includes(kw));
+  if (hasGeneral) return true;
+
+  if (isAuthenticated) {
+    const hasUser = USER_KEYWORDS.some(kw => cleanQuery.includes(kw));
+    if (hasUser) return true;
+  }
+
+  // Combine chunks for semantic checking
+  const allAvailableChunks = [...generalChunks];
+  if (isAuthenticated) {
+    allAvailableChunks.push(...userChunks);
+  }
+
+  if (allAvailableChunks.length === 0) return false;
+
+  const results = await searchSimilarChunks(query, allAvailableChunks, embeddingModel, 1);
+  if (results.length > 0) {
+    const highestScore = results[0].similarity;
+    console.log(`--- DEBUG: RAG Scope similarity score for query "${query}" is:`, highestScore);
+    if (highestScore >= 0.35) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 // Classify user intent to route messages cleanly
@@ -183,6 +267,11 @@ function classifyIntent(message) {
 
 export async function POST(request) {
   try {
+    // Session Handling: Retrieve the cookies to check authentication status
+    const cookieStore = await cookies();
+    const sessionToken = cookieStore.get('session_token');
+    const isAuthenticated = sessionToken && sessionToken.value === 'demo_session_token_value';
+
     const body = await request.json();
     const { messages, model: requestedModel } = body;
 
@@ -195,45 +284,112 @@ export async function POST(request) {
       return NextResponse.json({ error: 'No user message found.' }, { status: 400 });
     }
 
-    const context = getContextData();
-    const model = requestedModel || await getOllamaModel();
+    // Context Loading & Selection Logic:
+    const defaultModel = requestedModel || 'llama3.2:1b';
+    const embeddingModel = await getOllamaEmbeddingModel();
+
+    // 1. General context embeddings/chunks
+    const contextPath = path.join(process.cwd(), 'src', 'data', 'context.txt');
+    let generalChunks = [];
+    try {
+      generalChunks = await getOrGenerateEmbeddings(contextPath, embeddingModel);
+    } catch (error) {
+      console.error('Error loading/generating general chunks:', error);
+    }
+
+    // 2. User context embeddings/chunks (only if authenticated)
+    let userChunks = [];
+    if (isAuthenticated) {
+      const userContextPath = path.join(process.cwd(), 'src', 'data', 'user.txt');
+      try {
+        userChunks = await getOrGenerateEmbeddings(userContextPath, embeddingModel);
+      } catch (error) {
+        console.error('Error loading/generating user chunks:', error);
+      }
+    }
 
     // Classify user intent
     const intent = classifyIntent(lastUserMessage.content);
 
     if (intent === 'GREETING') {
-      return NextResponse.json({
-        message: {
-          role: 'assistant',
-          content: 'Hello! I am your C-DAC Revival Disaster Recovery Assistant. Ask me anything about our DR products, replication modes, architectures, or case studies!'
-        },
-        model: model
+      const content = isAuthenticated
+        ? 'Hello, demo! I am your C-DAC Revival Disaster Recovery Assistant. Having loaded your profile, I can answer queries about your assigned staging appliances, contacts, custom drill schedules, and general DR products.'
+        : 'Hello! I am your C-DAC Revival Disaster Recovery Assistant. Ask me anything about our DR products, replication modes, architectures, or case studies!';
+      return new Response(content, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'X-Selected-Model': defaultModel
+        }
       });
     }
 
-    if (intent === 'OUT_OF_SCOPE') {
-      return NextResponse.json({
-        message: {
-          role: 'assistant',
-          content: 'I am sorry, but I can only answer questions related to C-DAC Revival Disaster Recovery products based on the provided documentation. The answer to your question is not present in the documentation.'
-        },
-        model: model
+    // Check if the query is in scope using keyword + semantic filter
+    const inScope = await isQueryInScope(lastUserMessage.content, isAuthenticated, generalChunks, userChunks, embeddingModel);
+    if (!inScope) {
+      const outOfScopeResponse = 'I am sorry, but I can only answer questions related to C-DAC Revival Disaster Recovery products based on the provided documentation. The answer to your question is not present in the documentation.';
+      return new Response(outOfScopeResponse, {
+        headers: {
+          'Content-Type': 'text/plain; charset=utf-8',
+          'X-Selected-Model': defaultModel
+        }
       });
     }
 
-    const systemPrompt = `You are a strictly bound assistant for C-DAC Revival Disaster Recovery products.
+    const model = requestedModel || await getOllamaModel();
 
---- DOCUMENTATION ---
-${context}
---- END DOCUMENTATION ---
+    // System prompt is dynamically generated based on login status to switch context access rules.
+    let systemPrompt = '';
+    if (isAuthenticated) {
+      const simUserChunks = await searchSimilarChunks(lastUserMessage.content, userChunks, embeddingModel, 8);
+      const retrievedUserContext = simUserChunks.map(c => c.text).join('\n\n');
+
+      const simGeneralChunks = await searchSimilarChunks(lastUserMessage.content, generalChunks, embeddingModel, 8);
+      const retrievedGeneralContext = simGeneralChunks.map(c => c.text).join('\n\n');
+
+      systemPrompt = `You are a strictly bound assistant for C-DAC Revival Disaster Recovery products, customized for the logged-in user: demo.
+
+CRITICAL RULE:
+- You MUST start your response with "CONFIRMED: " if and only if the answer is fully present in the provided documentation.
+- If the answer is NOT present in the provided documentation, or if the question is out of scope, you MUST start your response with "OUT_OF_SCOPE: " and nothing else.
+
+--- USER PROFILE & CONFIGURATION DOCUMENTATION ---
+${retrievedUserContext}
+--- END USER PROFILE & CONFIGURATION DOCUMENTATION ---
+
+--- GENERAL PRODUCT DOCUMENTATION ---
+${retrievedGeneralContext}
+--- END GENERAL PRODUCT DOCUMENTATION ---
 
 RULES:
-1. Rely ONLY on the provided DOCUMENTATION to answer questions. You must NOT use any general knowledge, intelligence, or facts outside of the provided documentation.
-2. If the user's question is NOT about C-DAC Revival Disaster Recovery products or if the facts to answer the question are not fully present in the DOCUMENTATION, you MUST output EXACTLY this sentence and nothing else:
-"I am sorry, but I can only answer questions related to C-DAC Revival Disaster Recovery products based on the provided documentation. The answer to your question is not present in the documentation."
+1. Rely ONLY on the provided USER PROFILE and GENERAL PRODUCT DOCUMENTATION to answer questions. You must NOT use any general knowledge, intelligence, or facts outside of the provided documentation.
+2. Context selection and priority logic:
+   - If a question relates to the user's specific information (e.g. who they are, their contact details, their staging appliance, their schedule, their database size, etc.), you MUST prioritize information from the USER PROFILE DOCUMENTATION.
+   - If the answer to a question is not found in the USER PROFILE DOCUMENTATION, search the GENERAL PRODUCT DOCUMENTATION.
+   - You MUST be able to combine information from both sources when generating answers (e.g. if the user asks "What databases are supported for my setup?", explain that the product generally supports Oracle, PostgreSQL, MSSQL, MySQL, and MongoDB, and note that their specific setup is using Oracle).
 3. Answer in a helpful, polite, and helping nature, but keep responses small, concise, and direct (maximum 3 sentences or a short numbered list). Avoid repeating the question or using conversational filler.
-4. Formatting constraint: Do NOT use the asterisk (*) or double asterisk (**) characters anywhere in your response for any purpose (do not use them for bolding, bullet points, headers, or list markers). If you write lists, format them with plain numbers (e.g., 1., 2.) or plain dashes (-). Use normal capitalization/text for emphasis.
-5.Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used ,Do not guess, estimate, infer, summarize from incomplete information, or fill gaps    `;
+4. Formatting constraint: Do NOT use the asterisk (*) or double asterisk (**) characters anywhere in your response for any purpose. If you write lists, format them with plain numbers (e.g., 1., 2.) or plain dashes (-). Use normal capitalization/text for emphasis.
+5. Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used. Do not guess, estimate, infer, summarize from incomplete information, or fill gaps.`;
+    } else {
+      const simGeneralChunks = await searchSimilarChunks(lastUserMessage.content, generalChunks, embeddingModel, 10);
+      const retrievedGeneralContext = simGeneralChunks.map(c => c.text).join('\n\n');
+
+      systemPrompt = `You are a strictly bound assistant for C-DAC Revival Disaster Recovery products.
+
+CRITICAL RULE:
+- You MUST start your response with "CONFIRMED: " if and only if the answer is fully present in the provided documentation.
+- If the answer is NOT present in the provided documentation, or if the question is out of scope, you MUST start your response with "OUT_OF_SCOPE: " and nothing else.
+
+--- GENERAL PRODUCT DOCUMENTATION ---
+${retrievedGeneralContext}
+--- END GENERAL PRODUCT DOCUMENTATION ---
+
+RULES:
+1. Rely ONLY on the provided GENERAL PRODUCT DOCUMENTATION to answer questions. You must NOT use any general knowledge, intelligence, or facts outside of the provided documentation.
+2. Since you are talking to an unauthenticated Guest user, you have NO access to user-specific details. Do NOT make up or look up any details about the user's profile, contact details, staging appliance, or schedule.
+3. Answer in a helpful, polite, and helping nature, but keep responses small, concise, and direct (maximum 3 sentences or a short numbered list). Avoid repeating the question or using conversational filler.
+4. Formatting constraint: Do NOT use the asterisk (*) or double asterisk (**) characters anywhere in your response for any purpose. If you write lists, format them with plain numbers (e.g., 1., 2.) or plain dashes (-). Use normal capitalization/text for emphasis.
+5. Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used. Do not guess, estimate, infer, summarize from incomplete information, or fill gaps.`;
+    }
 
     // Construct request to local Ollama instance
     const ollamaMessages = [
@@ -265,27 +421,50 @@ RULES:
           const checkAndRelease = (isDone) => {
             if (hasReleasedBuffer) return;
 
-            if (buffer.length >= 120 || isDone) {
-              const lowercaseContent = buffer.toLowerCase();
-              const looksLikeFallback = lowercaseContent.includes('sorry') ||
-                lowercaseContent.includes('not present in') ||
-                lowercaseContent.includes('not mentioned in') ||
-                lowercaseContent.includes('not found in') ||
-                lowercaseContent.includes('does not contain') ||
-                lowercaseContent.includes('does not mention') ||
-                lowercaseContent.includes('cannot answer');
+            const trimmedBuffer = buffer.trim().toLowerCase();
+            console.log(`--- DEBUG checkAndRelease: buffer="${buffer}", trimmed="${trimmedBuffer}", isDone=${isDone}, len=${buffer.length}`);
 
-              if (looksLikeFallback) {
+            if (trimmedBuffer.startsWith('confirmed:')) {
+              const matchIndex = buffer.toLowerCase().indexOf('confirmed:');
+              let cleanContent = buffer.slice(matchIndex + 10);
+              cleanContent = cleanContent.replace(/^[\s\r\n]+/, '');
+
+              // Wait until we have at least 15 characters of content to check for nested fallbacks,
+              // unless the stream has finished.
+              if (cleanContent.length < 15 && !isDone) {
+                console.log(`--- DEBUG checkAndRelease: CONFIRMED match but cleanContent too short (${cleanContent.length} chars). Waiting...`);
+                return;
+              }
+
+              const cleanLower = cleanContent.toLowerCase().trim();
+              if (
+                cleanLower.startsWith('out_of_scope:') ||
+                cleanLower.includes('out of scope') ||
+                cleanLower.includes('sorry') ||
+                cleanLower.includes('none') ||
+                cleanLower.includes('unauthorized') ||
+                cleanLower.includes('unauthenticated') ||
+                cleanLower.includes('not available') ||
+                cleanLower.includes('unavailable')
+              ) {
+                console.log(`--- DEBUG checkAndRelease: CONFIRMED but content is OUT_OF_SCOPE. cleanLower="${cleanLower}"`);
                 controller.enqueue(new TextEncoder().encode("I am sorry, but I can only answer questions related to C-DAC Revival Disaster Recovery products based on the provided documentation. The answer to your question is not present in the documentation."));
-                isFallback = true;
                 hasReleasedBuffer = true;
+                isFallback = true;
               } else {
-                if (buffer) {
-                  const sanitizedBuffer = buffer.replace(/\*/g, '');
+                console.log(`--- DEBUG checkAndRelease: CONFIRMED match. cleanContent="${cleanContent}"`);
+                if (cleanContent) {
+                  const sanitizedBuffer = cleanContent.replace(/\*/g, '');
                   controller.enqueue(new TextEncoder().encode(sanitizedBuffer));
                 }
                 hasReleasedBuffer = true;
+                isFallback = false;
               }
+            } else if (trimmedBuffer.startsWith('out_of_scope:') || isDone || buffer.length >= 40) {
+              console.log(`--- DEBUG checkAndRelease: OUT_OF_SCOPE / FALLBACK match. startsWithOut=${trimmedBuffer.startsWith('out_of_scope:')}, isDone=${isDone}, len=${buffer.length}`);
+              controller.enqueue(new TextEncoder().encode("I am sorry, but I can only answer questions related to C-DAC Revival Disaster Recovery products based on the provided documentation. The answer to your question is not present in the documentation."));
+              hasReleasedBuffer = true;
+              isFallback = true;
             }
           };
 

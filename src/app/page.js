@@ -16,7 +16,43 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState('');
   const [availableModels, setAvailableModels] = useState([]);
   
+  // Authentication & Session state
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState('');
+  const [showLoginForm, setShowLoginForm] = useState(false);
+  const [loginUsername, setLoginUsername] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  
   const messagesEndRef = useRef(null);
+
+  // Session Handling: Check current session from the server
+  const checkAuthStatus = async () => {
+    try {
+      const res = await fetch('/api/auth');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.authenticated) {
+          setIsAuthenticated(true);
+          setUsername(data.user);
+          
+          // Dynamically adjust greeting message if authenticated
+          setMessages([
+            {
+              role: 'assistant',
+              content: 'Hello, demo! I am your C-DAC Revival Disaster Recovery Assistant. Having loaded your profile, I can answer queries about your assigned staging appliances, contacts, custom drill schedules, and general DR products.'
+            }
+          ]);
+        } else {
+          setIsAuthenticated(false);
+          setUsername('');
+        }
+      }
+    } catch (e) {
+      console.error('Failed to check auth status:', e);
+    }
+  };
 
   // Fetch Ollama connection status and active model
   const checkOllamaStatus = async () => {
@@ -45,7 +81,96 @@ export default function Home() {
 
   useEffect(() => {
     checkOllamaStatus();
+    checkAuthStatus();
   }, []);
+
+  // Login/logout flow handler: Submit login details to /api/auth
+  const handleLoginSubmit = async () => {
+    if (!loginUsername.trim() || !loginPassword.trim()) {
+      setLoginError('Please enter both username and password.');
+      return;
+    }
+
+    setIsLoggingIn(true);
+    setLoginError('');
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'login',
+          username: loginUsername,
+          password: loginPassword,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setIsAuthenticated(true);
+          setUsername(data.user);
+          setShowLoginForm(false);
+          setLoginUsername('');
+          setLoginPassword('');
+          
+          // Clear current history and show personalized greeting
+          setMessages([
+            {
+              role: 'assistant',
+              content: 'Hello, demo! I am your C-DAC Revival Disaster Recovery Assistant. Having loaded your profile, I can answer queries about your assigned staging appliances, contacts, custom drill schedules, and general DR products.'
+            },
+            {
+              role: 'system',
+              content: 'Successfully authenticated as demo. User context loaded.'
+            }
+          ]);
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setLoginError(data.error || 'Invalid username or password.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setLoginError('Failed to authenticate. Please check server logs.');
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  // Login/logout flow handler: Logout session and clear authentication states
+  const handleLogout = async () => {
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action: 'logout' }),
+      });
+
+      if (res.ok) {
+        setIsAuthenticated(false);
+        setUsername('');
+        
+        // Clear chat and return to generic guest greeting
+        setMessages([
+          {
+            role: 'assistant',
+            content: 'Hello! I am your C-DAC Revival Disaster Recovery Assistant. Ask me anything about our DR products, replication modes, architectures, or case studies!'
+          },
+          {
+            role: 'system',
+            content: 'Logged out. Reverted to guest context.'
+          }
+        ]);
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
 
   // Auto scroll to bottom of chat
   useEffect(() => {
@@ -166,6 +291,32 @@ export default function Home() {
 
   return (
     <main style={{ position: 'relative', minHeight: '100vh' }}>
+      {/* Top Navbar */}
+      <nav className="top-navbar">
+        <div className="navbar-brand">
+          <div className="navbar-logo">DR</div>
+          <span>C-DAC Revival Portal</span>
+        </div>
+        <div className="navbar-actions">
+          {isAuthenticated ? (
+            <div className="user-profile-badge">
+              <span className="user-status-dot online"></span>
+              <span className="user-name">Admin: {username}</span>
+              <button onClick={handleLogout} className="navbar-btn logout">
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="user-profile-badge">
+              <span className="user-status-dot"></span>
+              <span className="user-name">Guest Mode</span>
+              <button onClick={() => setShowLoginForm(true)} className="navbar-btn login">
+                Sign In
+              </button>
+            </div>
+          )}
+        </div>
+      </nav>
       {/* Decorative Glow Backgrounds */}
       <div className="glow-bg">
         <div className="glow-circle-1"></div>
@@ -515,7 +666,7 @@ export default function Home() {
               <div key={index} className={`message-bubble ${msg.role}`}>
                 {msg.role === 'system' ? (
                   <div>
-                    <strong>System Status: </strong>
+                    <strong>System: </strong>
                     {msg.content}
                   </div>
                 ) : (
@@ -576,6 +727,82 @@ export default function Home() {
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Login Modal */}
+      {showLoginForm && (
+        <div className="modal-backdrop">
+          <div className="modal-card">
+            <button 
+              className="modal-close-btn"
+              onClick={() => {
+                setShowLoginForm(false);
+                setLoginError('');
+                setLoginUsername('');
+                setLoginPassword('');
+              }}
+              title="Close Dialog"
+            >
+              ✕
+            </button>
+            <h3 className="login-form-title">Administrator Sign In</h3>
+            <p className="login-form-subtitle">Enter credentials to unlock user.txt context</p>
+            
+            <div className="login-input-group">
+              <label className="login-label">Username</label>
+              <input
+                type="text"
+                className="login-input"
+                placeholder="demo"
+                value={loginUsername}
+                onChange={(e) => setLoginUsername(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLoginSubmit()}
+                disabled={isLoggingIn}
+              />
+            </div>
+
+            <div className="login-input-group">
+              <label className="login-label">Password</label>
+              <input
+                type="password"
+                className="login-input"
+                placeholder="demo123"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLoginSubmit()}
+                disabled={isLoggingIn}
+              />
+            </div>
+
+            {loginError && <div className="login-error-msg">{loginError}</div>}
+
+            <div className="login-form-actions">
+              <button 
+                onClick={handleLoginSubmit} 
+                className="login-submit-btn" 
+                disabled={isLoggingIn}
+              >
+                {isLoggingIn ? 'Verifying...' : 'Sign In'}
+              </button>
+              <button 
+                onClick={() => {
+                  setShowLoginForm(false);
+                  setLoginError('');
+                  setLoginUsername('');
+                  setLoginPassword('');
+                }} 
+                className="login-cancel-btn"
+                disabled={isLoggingIn}
+              >
+                Cancel
+              </button>
+            </div>
+            
+            <div className="login-credentials-tip">
+              Demo credentials: <strong>demo</strong> / <strong>demo123</strong>
             </div>
           </div>
         </div>
