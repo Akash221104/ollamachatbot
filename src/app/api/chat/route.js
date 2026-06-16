@@ -196,7 +196,7 @@ const USER_KEYWORDS = [
 async function getOllamaEmbeddingModel() {
   try {
     const modelNames = await getAvailableModelNames();
-    
+
     // Check if bge-m3 is available
     const preferredBge = modelNames.find(name => name.startsWith('bge-m3'));
     if (preferredBge) return preferredBge;
@@ -340,10 +340,10 @@ export async function POST(request) {
     // System prompt is dynamically generated based on login status to switch context access rules.
     let systemPrompt = '';
     if (isAuthenticated) {
-      const simUserChunks = await searchSimilarChunks(lastUserMessage.content, userChunks, embeddingModel, 8);
+      const simUserChunks = await searchSimilarChunks(lastUserMessage.content, userChunks, embeddingModel, 5);
       const retrievedUserContext = simUserChunks.map(c => c.text).join('\n\n');
 
-      const simGeneralChunks = await searchSimilarChunks(lastUserMessage.content, generalChunks, embeddingModel, 8);
+      const simGeneralChunks = await searchSimilarChunks(lastUserMessage.content, generalChunks, embeddingModel, 5);
       const retrievedGeneralContext = simGeneralChunks.map(c => c.text).join('\n\n');
 
       systemPrompt = `You are a strictly bound assistant for C-DAC Revival Disaster Recovery products, customized for the logged-in user: demo.
@@ -370,7 +370,7 @@ RULES:
 4. Formatting constraint: Do NOT use the asterisk (*) or double asterisk (**) characters anywhere in your response for any purpose. If you write lists, format them with plain numbers (e.g., 1., 2.) or plain dashes (-). Use normal capitalization/text for emphasis.
 5. Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used. Do not guess, estimate, infer, summarize from incomplete information, or fill gaps.`;
     } else {
-      const simGeneralChunks = await searchSimilarChunks(lastUserMessage.content, generalChunks, embeddingModel, 10);
+      const simGeneralChunks = await searchSimilarChunks(lastUserMessage.content, generalChunks, embeddingModel, 5);
       const retrievedGeneralContext = simGeneralChunks.map(c => c.text).join('\n\n');
 
       systemPrompt = `You are a strictly bound assistant for C-DAC Revival Disaster Recovery products.
@@ -390,6 +390,9 @@ RULES:
 4. Formatting constraint: Do NOT use the asterisk (*) or double asterisk (**) characters anywhere in your response for any purpose. If you write lists, format them with plain numbers (e.g., 1., 2.) or plain dashes (-). Use normal capitalization/text for emphasis.
 5. Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used. Do not guess, estimate, infer, summarize from incomplete information, or fill gaps.`;
     }
+
+    console.log("=== FINAL SYSTEM PROMPT SENT TO OLLAMA ===");
+    console.log(systemPrompt);
 
     // Construct request to local Ollama instance
     const ollamaMessages = [

@@ -175,7 +175,7 @@ export async function getOrGenerateEmbeddings(filePath, embeddingModel = 'bge-m3
   }
 
   console.log(`[RAG] Cache miss/stale for: ${path.basename(filePath)}. Generating embeddings...`);
-  
+
   // Segment document into paragraph-based chunks
   const rawChunks = content
     .split(/\n\s*\n+/)
