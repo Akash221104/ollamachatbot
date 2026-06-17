@@ -2,9 +2,14 @@
 
 import { useState, useEffect, useRef } from 'react';
 
+interface Message {
+  role: 'assistant' | 'user' | 'system';
+  content: string;
+}
+
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<Message[]>([
     {
       role: 'assistant',
       content: 'Hello! I am your C-DAC Revival Disaster Recovery Assistant. Ask me anything about our DR products, replication modes, architectures, or case studies!'
@@ -12,9 +17,9 @@ export default function Home() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [ollamaStatus, setOllamaStatus] = useState('loading'); // 'loading' | 'online' | 'offline'
+  const [ollamaStatus, setOllamaStatus] = useState<'loading' | 'online' | 'offline'>('loading');
   const [selectedModel, setSelectedModel] = useState('');
-  const [availableModels, setAvailableModels] = useState([]);
+  const [availableModels, setAvailableModels] = useState<string[]>([]);
   
   // Authentication & Session state
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -25,7 +30,7 @@ export default function Home() {
   const [loginError, setLoginError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   // Session Handling: Check current session from the server
   const checkAuthStatus = async () => {
@@ -179,10 +184,10 @@ export default function Home() {
     }
   }, [messages, isLoading]);
 
-  const handleSendMessage = async (text) => {
+  const handleSendMessage = async (text: string) => {
     if (!text.trim() || isLoading) return;
     
-    const userMessage = { role: 'user', content: text };
+    const userMessage: Message = { role: 'user', content: text };
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
@@ -229,7 +234,10 @@ export default function Home() {
       // Add a placeholder message for the assistant
       setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
 
-      const reader = response.body.getReader();
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('No readable stream reader available on response body');
+      }
       const decoder = new TextDecoder();
       let assistantContent = '';
 
@@ -262,11 +270,11 @@ export default function Home() {
     }
   };
 
-  const handleSuggestionClick = (question) => {
+  const handleSuggestionClick = (question: string) => {
     handleSendMessage(question);
   };
 
-  const handleKeyPress = (e) => {
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSendMessage(inputValue);
     }
@@ -596,7 +604,7 @@ export default function Home() {
               <div>
                 <div className="chat-title-text">C-DAC DR Assistant</div>
                 <div className="chat-status-indicator">
-                  <div className={`status-dot ${ollamaStatus === 'offline' ? 'offline' : ''}`} />
+                  <div className={`status-dot ${ollamaStatus}`} />
                   <span>
                     {ollamaStatus === 'loading' && 'Checking Ollama...'}
                     {ollamaStatus === 'offline' && 'Ollama offline'}
@@ -639,7 +647,6 @@ export default function Home() {
                 title="Clear Chat History"
                 style={{
                   background: 'transparent',
-                  border: 'none',
                   color: 'var(--text-muted)',
                   cursor: 'pointer',
                   fontSize: '0.8rem',
@@ -690,7 +697,7 @@ export default function Home() {
             )}
             <div ref={messagesEndRef} />
 
-            {/* Quick Suggestions - show only if chat is empty or contains only starting greeting */}
+            {/* Quick Suggestions */}
             {messages.length <= 2 && !isLoading && (
               <div className="chat-suggestions">
                 <span className="suggestion-title">Suggested Questions:</span>

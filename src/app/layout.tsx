@@ -16,7 +16,11 @@ export const metadata = {
   description: "Disaster Recovery management, replication details, and Ollama-powered AI Chatbot helper for C-DAC Revival DR products.",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body>{children}</body>

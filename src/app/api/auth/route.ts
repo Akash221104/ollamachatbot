@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// Hardcoded demo credentials (no database required)
+// Hardcoded demo credentials (no database required for authentication logic)
 const DEMO_USER = {
   username: 'demo',
   password: 'demo123',
@@ -30,8 +30,8 @@ export async function GET() {
 
     // Return unauthenticated if no valid cookie is found
     return NextResponse.json({ authenticated: false });
-  } catch (error) {
-    console.error('Session check error:', error);
+  } catch (error: any) {
+    console.error('Session check error:', error.message);
     return NextResponse.json({ error: 'Failed to verify session.' }, { status: 500 });
   }
 }
@@ -41,7 +41,7 @@ export async function GET() {
  * - action: 'login' creates a session cookie.
  * - action: 'logout' deletes the session cookie.
  */
-export async function POST(request) {
+export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { action, username, password } = body;
@@ -82,8 +82,8 @@ export async function POST(request) {
     }
 
     return NextResponse.json({ error: 'Invalid action.' }, { status: 400 });
-  } catch (error) {
-    console.error('Auth request error:', error);
+  } catch (error: any) {
+    console.error('Auth request error:', error.message);
     return NextResponse.json({ error: 'Internal server error.' }, { status: 500 });
   }
 }

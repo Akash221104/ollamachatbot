@@ -411,6 +411,13 @@ html, body {
   width: 6px;
   height: 6px;
   border-radius: 50%;
+}
+
+.status-dot.loading {
+  background-color: #F59E0B; /* Orange */
+}
+
+.status-dot.online {
   background-color: #10B981; /* Green */
 }
 
