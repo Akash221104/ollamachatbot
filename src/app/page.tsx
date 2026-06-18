@@ -7,6 +7,124 @@ interface Message {
   content: string;
 }
 
+function renderTableBlock(rows: string[][], key: string) {
+  // Check if rows contain a separator row like |---|---|
+  const filteredRows = rows.filter(row => {
+    const rowStr = row.join('');
+    return !/^[:\-\s\d|]+$/.test(rowStr) || rowStr.trim() === '';
+  });
+
+  if (filteredRows.length === 0) return null;
+
+  const headerRow = filteredRows[0];
+  const bodyRows = filteredRows.slice(1);
+
+  return (
+    <div key={key} className="table-responsive-chat" style={{ overflowX: 'auto', margin: '12px 0' }}>
+      <table style={{
+        width: '100%',
+        borderCollapse: 'collapse',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        fontSize: '0.8rem',
+        borderRadius: '8px',
+        overflow: 'hidden'
+      }}>
+        <thead>
+          <tr style={{ background: 'rgba(255, 255, 255, 0.06)' }}>
+            {headerRow.map((cell, cellIdx) => (
+              <th key={`th-${cellIdx}`} style={{
+                padding: '6px 10px',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                textAlign: 'left',
+                fontWeight: '600',
+                color: 'var(--text-primary)'
+              }}>
+                {cell}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {bodyRows.map((row, rowIdx) => (
+            <tr key={`tr-${rowIdx}`} style={{
+              background: rowIdx % 2 === 0 ? 'transparent' : 'rgba(255, 255, 255, 0.02)'
+            }}>
+              {row.map((cell, cellIdx) => (
+                <td key={`td-${cellIdx}`} style={{
+                  padding: '6px 10px',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  color: 'var(--text-secondary)'
+                }}>
+                  {cell}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function renderMessageContent(content: string) {
+  const lines = content.split('\n');
+  const renderedElements: React.ReactNode[] = [];
+  
+  let currentTable: string[][] = [];
+  let inTable = false;
+
+  for (let idx = 0; idx < lines.length; idx++) {
+    const line = lines[idx];
+    const isTableLine = line.trim().startsWith('|');
+
+    if (isTableLine) {
+      if (!inTable) {
+        inTable = true;
+        currentTable = [];
+      }
+      const cells = line.split('|').map(c => c.trim());
+      if (cells.length > 2) {
+        const rowCells = cells.slice(1, -1);
+        currentTable.push(rowCells);
+      }
+    } else {
+      if (inTable) {
+        renderedElements.push(renderTableBlock(currentTable, `table-${idx}`));
+        inTable = false;
+        currentTable = [];
+      }
+      
+      const trimmedLine = line.trim();
+      if (trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+        renderedElements.push(
+          <li key={`list-${idx}`} style={{ marginLeft: '16px', marginBottom: '4px', listStyleType: 'disc', color: 'var(--text-secondary)' }}>
+            {trimmedLine.substring(1).trim()}
+          </li>
+        );
+      } else if (/^\d+\./.test(trimmedLine)) {
+        renderedElements.push(
+          <div key={`ol-${idx}`} style={{ marginLeft: '16px', marginBottom: '4px', color: 'var(--text-secondary)' }}>
+            {trimmedLine}
+          </div>
+        );
+      } else if (trimmedLine !== '') {
+        renderedElements.push(
+          <p key={`p-${idx}`} style={{ marginBottom: '8px' }}>
+            {line}
+          </p>
+        );
+      }
+    }
+  }
+
+  if (inTable && currentTable.length > 0) {
+    renderedElements.push(renderTableBlock(currentTable, `table-end`));
+  }
+
+  return <div style={{ display: 'flex', flexDirection: 'column' }}>{renderedElements}</div>;
+}
+
+
 export default function Home() {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -677,11 +795,7 @@ export default function Home() {
                     {msg.content}
                   </div>
                 ) : (
-                  msg.content.split('\n').map((line, i) => (
-                    <p key={i} style={{ marginBottom: line.startsWith('-') ? '4px' : '8px' }}>
-                      {line}
-                    </p>
-                  ))
+                  renderMessageContent(msg.content)
                 )}
               </div>
             ))}

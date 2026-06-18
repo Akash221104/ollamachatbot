@@ -197,9 +197,12 @@ RULES:
    - If a question relates to the user's specific information (e.g. who they are, their contact details, their staging appliance, their schedule, their database size, etc.), you MUST prioritize information from the USER PROFILE DOCUMENTATION.
    - If the answer to a question is not found in the USER PROFILE DOCUMENTATION, search the GENERAL PRODUCT DOCUMENTATION.
    - You MUST be able to combine information from both sources when generating answers (e.g. if the user asks "What databases are supported for my setup?", explain that the product generally supports Oracle, PostgreSQL, MSSQL, MySQL, and MongoDB, and note that their specific setup is using Oracle).
-3. Answer in a helpful, polite, and helping nature, but keep responses small, concise, and direct (maximum 3 sentences or a short numbered list). Avoid repeating the question or using conversational filler.
-4. Formatting constraint: Do NOT use the asterisk (*) or double asterisk (**) characters anywhere in your response for any purpose. If you write lists, format them with plain numbers (e.g., 1., 2.) or plain dashes (-). Use normal capitalization/text for emphasis.
-5. Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used. Do not guess, estimate, infer, summarize from incomplete information, or fill gaps.`;
+3. Formatting & Structure:
+   - For listing multiple items (features, specs, steps, etc.), format them clearly using plain numbers (e.g., 1., 2.) or simple dashes (-).
+   - For explanations or single concepts, write a cohesive, readable paragraph of 2 to 3 sentences.
+   - Keep answers direct, polite, and helpful, and avoid conversational filler or repeating the user's question.
+   - CRITICAL: Do NOT use asterisks (*) or double asterisks (**) anywhere in your response for any purpose. Use plain capitalization/text for emphasis.
+4. Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used. Do not guess, estimate, or fill gaps with facts from outside the documentation. However, you ARE allowed to format, organize, or compile facts that are present in the documentation (e.g. into comparison tables or lists) to answer the user's query directly, as long as you do not introduce any outside information.`;
     } else {
       const simGeneralChunks = await searchSimilarChunks(lastUserMessage.content, generalFiles, embeddingModel, 5, 0.25);
       const retrievedGeneralContext = simGeneralChunks.map(c => c.text).join('\n\n');
@@ -218,9 +221,12 @@ ${retrievedGeneralContext}
 RULES:
 1. Rely ONLY on the provided GENERAL PRODUCT DOCUMENTATION to answer questions. You must NOT use any general knowledge, intelligence, or facts outside of the provided documentation.
 2. Since you are talking to an unauthenticated Guest user, you have NO access to user-specific details. Do NOT make up or look up any details about the user's profile, contact details, staging appliance, or schedule.
-3. Answer in a helpful, polite, and helping nature, but keep responses small, concise, and direct (maximum 3 sentences or a short numbered list). Avoid repeating the question or using conversational filler.
-4. Formatting constraint: Do NOT use the asterisk (*) or double asterisk (**) characters anywhere in your response for any purpose. If you write lists, format them with plain numbers (e.g., 1., 2.) or plain dashes (-). Use normal capitalization/text for emphasis.
-5. Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used. Do not guess, estimate, infer, summarize from incomplete information, or fill gaps.`;
+3. Formatting & Structure:
+   - For listing multiple items (features, specs, steps, etc.), format them clearly using plain numbers (e.g., 1., 2.) or simple dashes (-).
+   - For explanations or single concepts, write a cohesive, readable paragraph of 2 to 3 sentences.
+   - Keep answers direct, polite, and helpful, and avoid conversational filler or repeating the user's question.
+   - CRITICAL: Do NOT use asterisks (*) or double asterisks (**) anywhere in your response for any purpose. Use plain capitalization/text for emphasis.
+4. Treat the documentation as the only source of truth. Your knowledge cutoff, training data, and general world knowledge are unavailable and must never be used. Do not guess, estimate, or fill gaps with facts from outside the documentation. However, you ARE allowed to format, organize, or compile facts that are present in the documentation (e.g. into comparison tables or lists) to answer the user's query, as long as you do not introduce any outside information.`;
     }
 
     console.log("=== FINAL SYSTEM PROMPT SENT TO OLLAMA ===");
@@ -261,8 +267,8 @@ RULES:
             const trimmedBuffer = buffer.trim().toLowerCase();
             console.log(`--- DEBUG checkAndRelease: buffer="${buffer}", trimmed="${trimmedBuffer}", isDone=${isDone}, len=${buffer.length}`);
 
-            const confirmedRegex = /^\s*confirmed\s*[:\-\s]\s*/i;
-            const outOfScopeRegex = /^\s*out[_\s]of[_\s]scope\s*[:\-\s]\s*/i;
+            const confirmedRegex = /^\s*\*?\*?\s*confirmed\s*\*?\*?\s*[:\-\.\s]*\s*/i;
+            const outOfScopeRegex = /^\s*\*?\*?\s*out[_\s]of[_\s]scope\s*\*?\*?\s*[:\-\.\s]*\s*/i;
 
             const matchConfirmed = buffer.match(confirmedRegex);
             const matchOutOfScope = buffer.match(outOfScopeRegex);
@@ -300,11 +306,27 @@ RULES:
                 hasReleasedBuffer = true;
                 isFallback = false;
               }
-            } else if (matchOutOfScope || isDone || buffer.length >= 60) {
-              console.log(`--- DEBUG checkAndRelease: OUT_OF_SCOPE / FALLBACK match. isDone=${isDone}, len=${buffer.length}`);
+            } else if (matchOutOfScope) {
+              console.log(`--- DEBUG checkAndRelease: OUT_OF_SCOPE match.`);
               controller.enqueue(new TextEncoder().encode("I am sorry, but I can only answer questions related to C-DAC Revival Disaster Recovery products based on the provided documentation. The answer to your question is not present in the documentation."));
               hasReleasedBuffer = true;
               isFallback = true;
+            } else if (
+              trimmedBuffer.startsWith('i am sorry') ||
+              trimmedBuffer.startsWith('sorry') ||
+              trimmedBuffer.startsWith('the answer is not present') ||
+              trimmedBuffer.startsWith('not found')
+            ) {
+              console.log(`--- DEBUG checkAndRelease: Direct fallback start match.`);
+              controller.enqueue(new TextEncoder().encode("I am sorry, but I can only answer questions related to C-DAC Revival Disaster Recovery products based on the provided documentation. The answer to your question is not present in the documentation."));
+              hasReleasedBuffer = true;
+              isFallback = true;
+            } else if (isDone || buffer.length >= 30) {
+              console.log(`--- DEBUG checkAndRelease: Direct answer flow (no prefix matched). buffer="${buffer}"`);
+              const sanitizedBuffer = buffer.replace(/\*/g, '');
+              controller.enqueue(new TextEncoder().encode(sanitizedBuffer));
+              hasReleasedBuffer = true;
+              isFallback = false;
             }
           };
 
