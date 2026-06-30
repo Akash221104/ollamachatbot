@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "C-DAC Revival Disaster Recovery (DR) Portal",
-  description: "Disaster Recovery management, replication details, and Ollama-powered AI Chatbot helper for C-DAC Revival DR products.",
+  description: "Disaster Recovery management, replication detail , and Ollama-powered AI Chatbot helper for C-DAC Revival DR products.",
 };
 
 export default function RootLayout({

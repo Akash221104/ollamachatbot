@@ -102,6 +102,47 @@ async function main() {
     console.log('[Seed] No context.txt found, skipping document ingestion seed.');
   }
 
+  // Step 5: Seed organization
+  const existingOrg = await query('SELECT id, api_key FROM organizations LIMIT 1');
+  let orgId: string;
+  if (existingOrg.rowCount && existingOrg.rowCount > 0) {
+    console.log('[Seed] Organization already seeded:', existingOrg.rows[0].id);
+    orgId = existingOrg.rows[0].id;
+  } else {
+    console.log('[Seed] Seeding organization...');
+    const orgName = process.env.ORGANIZATION_NAME || 'My Company';
+    
+    // Generate random 16 character alphanumeric API key
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let randKey = '';
+    for (let i = 0; i < 16; i++) {
+      randKey += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const apiKey = 'ORG_' + randKey;
+
+    const insertOrg = await query(
+      `INSERT INTO organizations (name, api_key) VALUES ($1, $2) RETURNING id`,
+      [orgName, apiKey]
+    );
+    orgId = insertOrg.rows[0].id;
+    console.log(`[Seed] Organization "${orgName}" created.`);
+    console.log('[Seed] Organization API Key:', apiKey);
+    console.log('[Seed] Copy this key — it will not be shown again in the terminal');
+  }
+
+  // Step 6: Seed default integration
+  const existingIntegration = await query('SELECT id FROM chatbot_integrations LIMIT 1');
+  if (existingIntegration.rowCount && existingIntegration.rowCount > 0) {
+    console.log('[Seed] Chatbot integration already exists, skipping integration seed.');
+  } else {
+    console.log('[Seed] Seeding default chatbot integration...');
+    await query(
+      `INSERT INTO chatbot_integrations (organization_id, name, allowed_origins) VALUES ($1, $2, $3)`,
+      [orgId, 'Default Integration', '{}']
+    );
+    console.log('[Seed] Default chatbot integration seeded.');
+  }
+
   console.log('[Seed] Seeding completed successfully!');
 }
 

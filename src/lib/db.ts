@@ -6,7 +6,7 @@ let pool: Pool | null = null;
  * Lazily retrieves or instantiates the PostgreSQL client pool.
  * This guarantees environment variables are fully loaded before configuration.
  */
-function getPool(): Pool {
+function getPool(): Pool  {
   if (!pool) {
     const poolConfig: PoolConfig = {
       host: process.env.DB_HOST || 'localhost',

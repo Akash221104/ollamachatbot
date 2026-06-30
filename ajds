@@ -1,0 +1,8 @@
+[33m3d84c18[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mversion2[m[33m, [m[1;31morigin/version2[m[33m)[m multise chatbot in nextjs only authentication
+[33m0744908[m[33m ([m[1;33mtag: [m[1;33mversion1[m[33m, [m[1;31morigin/master[m[33m, [m[1;32mversion1[m[33m, [m[1;32mmaster[m[33m)[m impliment smalll and large llm  model both together working
+[33mbc3ae56[m database added
+[33m7fc9cc0[m update
+[33mbfadc00[m rag based chatbot demo
+[33m576f929[m v1
+[33mb6c780a[m Configure HTTPS remote Ollama support, optimize chatbot speed and implement response streaming
+[33me9d59fb[m Initial commit from Create Next App

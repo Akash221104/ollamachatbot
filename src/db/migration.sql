@@ -67,3 +67,43 @@ CREATE INDEX IF NOT EXISTS embeddings_vector_cosine_idx ON embeddings USING hnsw
 CREATE INDEX IF NOT EXISTS embeddings_document_idx ON embeddings(document_id);
 CREATE INDEX IF NOT EXISTS user_documents_user_idx ON user_documents(user_id);
 
+-- Phase 2 Tables --
+
+-- Organizations table
+CREATE TABLE IF NOT EXISTS organizations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  api_key TEXT UNIQUE NOT NULL,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Chatbot Integrations table
+CREATE TABLE IF NOT EXISTS chatbot_integrations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  name TEXT NOT NULL,
+  allowed_origins TEXT[] DEFAULT '{}',
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- External Users table
+CREATE TABLE IF NOT EXISTS external_users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+  external_user_id TEXT NOT NULL,
+  name TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE (organization_id, external_user_id)
+);
+
+-- External User Documents table
+CREATE TABLE IF NOT EXISTS external_user_documents (
+  external_user_id UUID REFERENCES external_users(id) ON DELETE CASCADE,
+  document_id INTEGER REFERENCES documents(id) ON DELETE CASCADE,
+  assigned_at TIMESTAMP DEFAULT NOW(),
+  PRIMARY KEY (external_user_id, document_id)
+);
+
+

@@ -71,6 +71,8 @@ export default function DashboardLayout({
     { name: 'Dashboard', path: '/dashboard', icon: '📊' },
     { name: 'Users', path: '/dashboard/users', icon: '👥' },
     { name: 'Documents', path: '/dashboard/documents', icon: '📂' },
+    { name: 'Integrations', path: '/dashboard/integrations', icon: '🔌' },
+    { name: 'External Users', path: '/dashboard/external-users', icon: '🌐' },
     { name: 'Settings', path: '/dashboard/settings', icon: '⚙️' },
   ];
 

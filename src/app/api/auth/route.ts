@@ -59,7 +59,7 @@ export async function POST(request: Request) {
           sameSite: 'strict',
           path: '/',
           maxAge: 60 * 60 * 24, // 1 day
-        });
+        }) ;
 
         return NextResponse.json({
           success: true,
