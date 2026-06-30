@@ -1,0 +1,10 @@
+server:
+  port: 8080
+
+chatbot:
+  nextjs-url: http://localhost:3000
+  api-key: ORG_DLTX831QKRBKB1V3 # Secret server-side API key (never sent to the client browser)
+
+spring:
+  thymeleaf:
+    cache: false

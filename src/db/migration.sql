@@ -88,22 +88,13 @@ CREATE TABLE IF NOT EXISTS chatbot_integrations (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- External Users table
-CREATE TABLE IF NOT EXISTS external_users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
-  external_user_id TEXT NOT NULL,
-  name TEXT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE (organization_id, external_user_id)
-);
+-- Alter users table to support organizations and external integrations
+ALTER TABLE users ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS external_id TEXT;
 
--- External User Documents table
-CREATE TABLE IF NOT EXISTS external_user_documents (
-  external_user_id UUID REFERENCES external_users(id) ON DELETE CASCADE,
-  document_id INTEGER REFERENCES documents(id) ON DELETE CASCADE,
-  assigned_at TIMESTAMP DEFAULT NOW(),
-  PRIMARY KEY (external_user_id, document_id)
-);
+-- Create composite unique index for organization_id and external_id
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_org_external_id
+  ON users (organization_id, external_id)
+  WHERE external_id IS NOT NULL;
 
 

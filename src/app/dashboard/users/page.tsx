@@ -15,7 +15,7 @@ export default function UsersPage() {
   const [targetUserId, setTargetUserId] = useState<string | null>(null);
 
   // Form states
-  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'USER' });
+  const [createForm, setCreateForm] = useState({ name: '', email: '', password: '', role: 'USER', external_id: '' });
   const [newPassword, setNewPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -66,7 +66,7 @@ export default function UsersPage() {
 
       if (res.ok) {
         showToast('success', `User "${createForm.name}" created successfully.`);
-        setCreateForm({ name: '', email: '', password: '', role: 'USER' });
+        setCreateForm({ name: '', email: '', password: '', role: 'USER', external_id: '' });
         setShowCreateModal(false);
         fetchUsers();
       } else {
@@ -151,6 +151,28 @@ export default function UsersPage() {
     }
   };
 
+  const handleExternalIdChange = async (userId: string, newExternalId: string) => {
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ external_id: newExternalId.trim() || null })
+      });
+
+      if (res.ok) {
+        showToast('success', 'External ID updated successfully.');
+        fetchUsers();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        showToast('error', err.error || 'Failed to update External ID.');
+        fetchUsers();
+      }
+    } catch (err) {
+      showToast('error', 'Network error updating External ID.');
+      fetchUsers();
+    }
+  };
+
   const handleDeleteUser = async (userId: string, userEmail: string) => {
     const confirmDelete = window.confirm(`Are you sure you want to permanently delete user "${userEmail}"?\nThis action will also delete all their document assignments.`);
     if (!confirmDelete) return;
@@ -231,6 +253,7 @@ export default function UsersPage() {
               <th>Email</th>
               <th>Role</th>
               <th>Status</th>
+              <th>External ID</th>
               <th style={{ textAlign: 'center' }}>Documents Assigned</th>
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
@@ -274,6 +297,33 @@ export default function UsersPage() {
                   >
                     {u.is_active ? 'Active' : 'Inactive'}
                   </button>
+                </td>
+                <td>
+                  <input
+                    type="text"
+                    value={u.external_id || ''}
+                    placeholder="None"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setUsers(users.map(user => user.id === u.id ? { ...user, external_id: val } : user));
+                    }}
+                    onBlur={(e) => handleExternalIdChange(u.id, e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        (e.target as HTMLInputElement).blur();
+                      }
+                    }}
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '6px',
+                      color: 'white',
+                      padding: '4px 8px',
+                      width: '120px',
+                      fontSize: '0.85rem',
+                      outline: 'none'
+                    }}
+                  />
                 </td>
                 <td style={{ textAlign: 'center', fontWeight: 'bold' }}>{u.documentCount ?? 0}</td>
                 <td style={{ textAlign: 'right' }}>
@@ -375,6 +425,20 @@ export default function UsersPage() {
                   <option value="USER">USER</option>
                   <option value="ADMIN">ADMIN</option>
                 </select>
+              </div>
+
+              <div className="login-input-group">
+                <label className="login-label">External ID (Optional)</label>
+                <input
+                  type="text"
+                  className="login-input"
+                  placeholder="e.g. 101"
+                  value={createForm.external_id}
+                  onChange={(e) => setCreateForm({ ...createForm, external_id: e.target.value })}
+                />
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginTop: '4px', display: 'block' }}>
+                  Used to link users logging in via external applications.
+                </span>
               </div>
 
               <div className="login-form-actions" style={{ marginTop: '10px' }}>

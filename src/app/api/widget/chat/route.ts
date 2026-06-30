@@ -90,33 +90,45 @@ export async function POST(request: Request) {
       corsHeaders['Access-Control-Allow-Origin'] = origin;
     }
 
-    // 4. External User Auto-Upsert
-    const userRes = await query(
-      `INSERT INTO external_users (organization_id, external_user_id, name)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (organization_id, external_user_id)
-       DO UPDATE SET name = EXCLUDED.name
-       RETURNING id`,
-      [org.id, String(userId), userName || 'User']
+    // 4. Resolve external_id to internal user — scoped by organization
+    const userResult = await query(
+      `SELECT id, is_active FROM users WHERE external_id = $1 AND organization_id = $2`,
+      [String(userId), org.id]
     );
-    const externalUserUuid = userRes.rows[0].id;
+    const user = userResult.rows[0];
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'User not registered on this platform. Contact your administrator.' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
+    if (!user.is_active) {
+      return NextResponse.json(
+        { error: 'Account deactivated' },
+        { status: 403, headers: corsHeaders }
+      );
+    }
+
+    const userUuid = user.id;
 
     // 5. Generate Query Embedding
     const embeddingModel = process.env.OLLAMA_EMBEDDING_MODEL || 'bge-m3';
     const queryEmbedding = await getEmbedding(message, embeddingModel);
     const vectorStr = '[' + queryEmbedding.join(',') + ']';
 
-    // 6. Vector Search Scoped to External User's Documents
+    // 6. Vector Search Scoped to User's Documents
     const sql = `
       SELECT e.chunk_text, e.document_id, d.filename
       FROM embeddings e
       JOIN documents d ON d.id = e.document_id
-      JOIN external_user_documents eud ON eud.document_id = e.document_id
-      WHERE eud.external_user_id = $1 AND d.status = 'ACTIVE'
+      JOIN user_documents ud ON ud.document_id = e.document_id
+      WHERE ud.user_id = $1 AND d.status = 'ACTIVE'
       ORDER BY e.embedding <=> $2::vector ASC
       LIMIT 5
     `;
-    const chunksRes = await query(sql, [externalUserUuid, vectorStr]);
+    const chunksRes = await query(sql, [userUuid, vectorStr]);
     const chunks = chunksRes.rows;
 
     const startTime = Date.now();
@@ -128,7 +140,7 @@ export async function POST(request: Request) {
         `INSERT INTO audit_logs (user_id, action, metadata)
          VALUES ($1, $2, $3)`,
         [
-          null,
+          userUuid,
           'Widget Chat',
           JSON.stringify({
             external_user_id: String(userId),
@@ -255,7 +267,7 @@ export async function POST(request: Request) {
               `INSERT INTO audit_logs (user_id, action, metadata)
                VALUES ($1, $2, $3)`,
               [
-                null,
+                userUuid,
                 'Widget Chat',
                 JSON.stringify({
                   external_user_id: String(userId),
@@ -303,7 +315,7 @@ export async function POST(request: Request) {
       `INSERT INTO audit_logs (user_id, action, metadata)
        VALUES ($1, $2, $3)`,
       [
-        null,
+        userUuid,
         'Widget Chat',
         JSON.stringify({
           external_user_id: String(userId),

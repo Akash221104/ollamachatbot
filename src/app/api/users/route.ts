@@ -12,6 +12,7 @@ export async function GET(request: Request) {
 
     const sql = `
       SELECT u.id, u.name, u.email, u.role, u.is_active, u.created_at, 
+             u.organization_id, u.external_id,
              COUNT(ud.document_id)::integer as "documentCount"
       FROM users u
       LEFT JOIN user_documents ud ON ud.user_id = u.id
@@ -40,6 +41,15 @@ export async function POST(request: Request) {
 
     const body = await request.json();
     const { name, email, password, role } = body;
+    const external_id = body.external_id ? String(body.external_id).trim() : null;
+    let organization_id = body.organization_id || null;
+
+    if (external_id && !organization_id) {
+      const orgRes = await query('SELECT id FROM organizations LIMIT 1');
+      if (orgRes.rowCount && orgRes.rowCount > 0) {
+        organization_id = orgRes.rows[0].id;
+      }
+    }
 
     if (!name || !email || !password || !role) {
       return NextResponse.json(
@@ -66,12 +76,26 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if external ID is already in use for organization
+    if (external_id && organization_id) {
+      const checkExternal = await query(
+        'SELECT id FROM users WHERE external_id = $1 AND organization_id = $2',
+        [external_id, organization_id]
+      );
+      if (checkExternal.rowCount && checkExternal.rowCount > 0) {
+        return NextResponse.json(
+          { error: 'External ID already in use for this organization.' },
+          { status: 409 }
+        );
+      }
+    }
+
     // Hash password and insert
     const passwordHash = await hashPassword(password);
     const insertRes = await query(
-      `INSERT INTO users (name, email, password_hash, role, is_active)
-       VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, role, is_active, created_at`,
-      [name, email.toLowerCase().trim(), passwordHash, role, true]
+      `INSERT INTO users (name, email, password_hash, role, is_active, organization_id, external_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, name, email, role, is_active, organization_id, external_id, created_at`,
+      [name, email.toLowerCase().trim(), passwordHash, role, true, organization_id, external_id]
     );
     const newUser = insertRes.rows[0];
 

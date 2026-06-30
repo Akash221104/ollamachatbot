@@ -5,6 +5,8 @@ export interface User {
   role: 'ADMIN' | 'USER';
   is_active: boolean;
   documentCount?: number;
+  organization_id?: string | null;
+  external_id?: string | null;
   created_at: string;
 }
 
